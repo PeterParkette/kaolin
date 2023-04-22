@@ -152,8 +152,7 @@ class OrthographicIntrinsics(CameraIntrinsics):
             torch.stack([zero,             zero,             -2.0 / D,   tz],       dim=-1),
             torch.stack([zero,             zero,             zero,       one],     dim=-1)
         ]
-        ortho_mat = torch.stack(rows, dim=1)
-        return ortho_mat
+        return torch.stack(rows, dim=1)
 
     def projection_matrix(self) -> torch.Tensor:
         r"""Creates an OpenGL compatible orthographic projection matrix to NDC coordinates.
@@ -173,8 +172,7 @@ class OrthographicIntrinsics(CameraIntrinsics):
         bottom = -top
         right = 1.0 * self.width / self.height
         left = -right
-        ortho = self.orthographic_matrix(left, right, bottom, top, self.near, self.far)
-        return ortho
+        return self.orthographic_matrix(left, right, bottom, top, self.near, self.far)
 
     def transform(self, vectors: torch.Tensor) -> torch.Tensor:
         r"""Apply perspective projection to NDC coordinates.
@@ -209,9 +207,7 @@ class OrthographicIntrinsics(CameraIntrinsics):
 
         transformed_v = proj @ v
         transformed_v = transformed_v.squeeze(-1)  # Reshape:  (C, B, 4)
-        normalized_v = down_from_homogeneous(transformed_v)
-
-        return normalized_v  # Return shape:  (C, B, 3)
+        return down_from_homogeneous(transformed_v)
 
     def normalize_depth(self, depth: torch.Tensor) -> torch.Tensor:
         r"""Normalizes depth values to the NDC space defined by the view frustum.

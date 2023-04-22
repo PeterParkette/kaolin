@@ -68,7 +68,7 @@ def pointclouds():
 class TestBinaryEncoding:
     def test_server_client_binary_compatibility(self, meshes, pointclouds, out_dir):
         # Encode and write mesh0+mesh1 and mesh2 to binary files
-        binstr = meshes_to_binary(meshes['vertices'][0:2], meshes['faces'][0:2])
+        binstr = meshes_to_binary(meshes['vertices'][:2], meshes['faces'][:2])
         with open(os.path.join(out_dir, 'meshes0_1.bin'), 'wb') as f:
             f.write(binstr)
         binstr = meshes_to_binary([meshes['vertices'][2]], [meshes['faces'][2]])
@@ -76,7 +76,7 @@ class TestBinaryEncoding:
             f.write(binstr)
 
         # Encode and write ptcloud0+ptcloud1 and pointcloud2 to binary files
-        binstr = point_clouds_to_binary(pointclouds['positions'][0:2])
+        binstr = point_clouds_to_binary(pointclouds['positions'][:2])
         with open(os.path.join(out_dir, 'clouds0_1.bin'), 'wb') as f:
             f.write(binstr)
         binstr = point_clouds_to_binary([pointclouds['positions'][2]])
@@ -85,4 +85,4 @@ class TestBinaryEncoding:
 
         # Execute javascript test that checks that these are parsed correctly
         js_test = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'test_binary_parse.js')
-        os.system('npx mocha {}'.format(js_test))  # TODO: will npx work for everyone?
+        os.system(f'npx mocha {js_test}')

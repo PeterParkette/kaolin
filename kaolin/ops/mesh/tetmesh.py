@@ -76,10 +76,7 @@ def inverse_vertices_offset(tet_vertices):
     # compute the offset matrix w.r.t. vertex A
     offset_matrix = torch.cat([B - A, C - A, D - A], dim=2)
 
-    # compute the inverse of the offset matrix
-    inverse_offset_matrix = torch.inverse(offset_matrix)
-
-    return inverse_offset_matrix
+    return torch.inverse(offset_matrix)
 
 
 def subdivide_tetmesh(vertices, tetrahedrons, features=None):

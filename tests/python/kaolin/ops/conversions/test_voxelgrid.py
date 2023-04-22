@@ -36,8 +36,7 @@ class TestVoxelgridsToCubicMeshes:
 
     @pytest.fixture(autouse=True)
     def expected_verts(self, device):
-        expected_verts = []
-        expected_verts.append(torch.zeros((0, 3), device=device))
+        expected_verts = [torch.zeros((0, 3), device=device)]
         expected_verts.append(torch.tensor([[0, 0, 0],
                                             [0, 0, 1],
                                             [0, 0, 2],
@@ -123,10 +122,7 @@ class TestVoxelgridsToCubicMeshes:
     @pytest.fixture(autouse=True)
     def expected_faces(self, device):
 
-        expected_faces = []
-        expected_faces.append(torch.zeros(
-            (0, 4), dtype=torch.long, device=device))
-
+        expected_faces = [torch.zeros((0, 4), dtype=torch.long, device=device)]
         # 2nd case: all ones
 
         expected_faces.append(torch.tensor([[0,  3,  4,  1],
@@ -212,7 +208,7 @@ class TestVoxelgridsToCubicMeshes:
         tri_verts, tri_faces = vg.voxelgrids_to_cubic_meshes(
             voxelgrids, is_trimesh=True)
 
-        for i in range(0, 4):
+        for i in range(4):
             assert torch.equal(
                 tri_verts[i], expected_verts[i])
 
@@ -228,7 +224,7 @@ class TestVoxelgridsToCubicMeshes:
         verts, faces = vg.voxelgrids_to_cubic_meshes(
             voxelgrids, is_trimesh=False)
 
-        for i in range(0, 4):
+        for i in range(4):
             assert torch.equal(
                 verts[i], expected_verts[i])
             assert torch.equal(
@@ -1093,18 +1089,18 @@ class TestMarchingCube:
 
         new_expected_vertices = expected_vertices.detach().clone()
 
-        if dims == (0, 2, 1) or dims == [0, 2, 1]:
+        if dims in [(0, 2, 1), [0, 2, 1]]:
             new_expected_vertices[:, 1], new_expected_vertices[:, 2] = expected_vertices[:, 2], expected_vertices[:, 1]
-        elif dims == (1, 0, 2) or dims == [1, 0, 2]:
+        elif dims in [(1, 0, 2), [1, 0, 2]]:
             new_expected_vertices[:, 0], new_expected_vertices[:, 1] = expected_vertices[:, 1], expected_vertices[:, 0]
-        elif dims == (1, 2, 0) or dims == [1, 2, 0]:
+        elif dims in [(1, 2, 0), [1, 2, 0]]:
             new_expected_vertices[:, 0] = expected_vertices[:, 1]
             new_expected_vertices[:, 1] = expected_vertices[:, 2]
             new_expected_vertices[:, 2] = expected_vertices[:, 0]
             # pass
-        elif dims == (2, 1, 0) or dims == [2, 1, 0]:
+        elif dims in [(2, 1, 0), [2, 1, 0]]:
             new_expected_vertices[:, 0], new_expected_vertices[:, 2] = expected_vertices[:, 2], expected_vertices[:, 0]
-        elif dims == (2, 0, 1) or dims == [2, 0, 1]:
+        elif dims in [(2, 0, 1), [2, 0, 1]]:
             new_expected_vertices[:, 0] = expected_vertices[:, 2]
             new_expected_vertices[:, 1] = expected_vertices[:, 0]
             new_expected_vertices[:, 2] = expected_vertices[:, 1]

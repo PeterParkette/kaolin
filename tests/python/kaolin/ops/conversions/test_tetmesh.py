@@ -24,44 +24,49 @@ class TestMarchingTetrahedra:
 
     @pytest.fixture(autouse=True)
     def vertices(self, device):
-        vertices = torch.tensor([[-1., -1., -1.],
-                                 [1., -1., -1.],
-                                 [-1., 1., -1.],
-                                 [1., 1., -1.],
-                                 [-1., -1., 1.],
-                                 [1., -1., 1.],
-                                 [-1., 1., 1.],
-                                 [1., 1., 1.]],
-                                dtype=torch.float,
-                                device=device).unsqueeze(0).expand(4, -1, -1)
-        return vertices
+        return (
+            torch.tensor(
+                [
+                    [-1.0, -1.0, -1.0],
+                    [1.0, -1.0, -1.0],
+                    [-1.0, 1.0, -1.0],
+                    [1.0, 1.0, -1.0],
+                    [-1.0, -1.0, 1.0],
+                    [1.0, -1.0, 1.0],
+                    [-1.0, 1.0, 1.0],
+                    [1.0, 1.0, 1.0],
+                ],
+                dtype=torch.float,
+                device=device,
+            )
+            .unsqueeze(0)
+            .expand(4, -1, -1)
+        )
 
     @pytest.fixture(autouse=True)
     def tets(self, device):
-        tets = torch.tensor([[0, 1, 3, 5],
-                             [4, 5, 0, 6],
-                             [0, 3, 2, 6],
-                             [5, 3, 6, 7],
-                             [0, 5, 3, 6]],
-                            dtype=torch.long,
-                            device=device)
-        return tets
+        return torch.tensor(
+            [[0, 1, 3, 5], [4, 5, 0, 6], [0, 3, 2, 6], [5, 3, 6, 7], [0, 5, 3, 6]],
+            dtype=torch.long,
+            device=device,
+        )
 
     @pytest.fixture(autouse=True)
     def sdf(self, device):
-        sdf = torch.tensor([[1, 1, 1, 1, 1, 1, 1, 1],  # 1st case: empty
-                            [1, 1, 1, 1, -1, 1, 1, 1],  # 2nd case: one triangle
-                            [1, 1, 1, 1, -1, -1, 1, 1],  # 3rd case: multiple triangles
-                            [1, 1, 1, 1, -0.5, -0.7, 1, 1]],  # 4th case: same topology as 3rd case but different zero-crossings
-
-                           dtype=torch.float,
-                           device=device)
-        return sdf
+        return torch.tensor(
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1],  # 1st case: empty
+                [1, 1, 1, 1, -1, 1, 1, 1],  # 2nd case: one triangle
+                [1, 1, 1, 1, -1, -1, 1, 1],  # 3rd case: multiple triangles
+                [1, 1, 1, 1, -0.5, -0.7, 1, 1],
+            ],  # 4th case: same topology as 3rd case but different zero-crossings
+            dtype=torch.float,
+            device=device,
+        )
 
     @pytest.fixture(autouse=True)
     def expected_verts(self, device):
-        expected_verts = []
-        expected_verts.append(torch.zeros((0, 3), device=device))
+        expected_verts = [torch.zeros((0, 3), device=device)]
         expected_verts.append(torch.tensor([[-1., -1., 0.],
                                             [0., -1., 1.],
                                             [-1., 0., 1.]],
@@ -93,10 +98,7 @@ class TestMarchingTetrahedra:
     @pytest.fixture(autouse=True)
     def expected_faces(self, device):
 
-        expected_faces = []
-
-        expected_faces.append(torch.zeros(
-            (0, 3), dtype=torch.long, device=device))
+        expected_faces = [torch.zeros((0, 3), dtype=torch.long, device=device)]
 
         expected_faces.append(torch.tensor([[2, 1, 0]],
                                            dtype=torch.long,
@@ -123,10 +125,7 @@ class TestMarchingTetrahedra:
     @pytest.fixture(autouse=True)
     def expected_tet_idx(self, device):
 
-        expected_tet_idx = []
-        expected_tet_idx.append(torch.zeros(
-            (0), dtype=torch.long, device=device))
-
+        expected_tet_idx = [torch.zeros(0, dtype=torch.long, device=device)]
         expected_tet_idx.append(torch.tensor([1],
                                              dtype=torch.long,
                                              device=device))
@@ -144,7 +143,7 @@ class TestMarchingTetrahedra:
     def test_output_value(self, vertices, tets, sdf, expected_verts, expected_faces, expected_tet_idx):
 
         verts_list, faces_list, tet_idx_list = tm.marching_tetrahedra(vertices, tets, sdf, True)
-        for i in range(0, 4):
+        for i in range(4):
             assert torch.allclose(
                 verts_list[i], expected_verts[i], atol=1e-4)
             assert torch.equal(

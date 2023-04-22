@@ -154,11 +154,11 @@ class SumReduce(torch.autograd.Function):
         ctx.save_for_backward(inclusive_sum)
         return _C.render.spc.sum_reduce_cuda(feats, inclusive_sum.contiguous())
 
-    @staticmethod 
+    @staticmethod
     def backward(ctx, grad_output):
-        inclusive_sum = ctx.saved_tensors[0]
         grad_feats = None
         if ctx.needs_input_grad[0]:
+            inclusive_sum = ctx.saved_tensors[0]
             grad_feats = grad_output[(inclusive_sum - 1).long()]
         return grad_feats, None
 
@@ -195,8 +195,7 @@ class Cumsum(torch.autograd.Function):
         nonzero = torch.nonzero(info).int().contiguous()[..., 0]
         ctx.save_for_backward(nonzero)
         ctx.flags = (exclusive, reverse)
-        cumsum = _C.render.spc.cumsum_cuda(feats, nonzero, exclusive, reverse)
-        return cumsum
+        return _C.render.spc.cumsum_cuda(feats, nonzero, exclusive, reverse)
 
     @staticmethod
     def backward(ctx, grad_output):

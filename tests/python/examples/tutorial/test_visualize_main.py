@@ -46,8 +46,8 @@ class TestVisualizeMain:
         # Check that the main function runs
         # Note: to run and capture output do:
         # pytest --capture=tee-sys tests/python/examples/
-        args = '--skip_normalization --test_objs={} --output_dir={}'.format(objs, out_dir)
-        os.system('python examples/tutorial/visualize_main.py {}'.format(args))
+        args = f'--skip_normalization --test_objs={objs} --output_dir={out_dir}'
+        os.system(f'python examples/tutorial/visualize_main.py {args}')
 
         # Spot check one of the outputs
         for i in range(len(obj_paths)):

@@ -202,8 +202,7 @@ def fill(voxelgrids):
         on = ndimage.binary_fill_holes(voxelgrids[i])
         output.append(on)
 
-    output = torch.tensor(output, dtype=torch.bool, device=device)
-    return output
+    return torch.tensor(output, dtype=torch.bool, device=device)
 
 def extract_odms(voxelgrids):
     r"""Extracts orthographic depth maps from voxelgrids.

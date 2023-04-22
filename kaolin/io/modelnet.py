@@ -84,7 +84,7 @@ class ModelNet(Dataset):
         if categories is None:
             categories = all_categories
 
-        for idx, category in enumerate(categories):
+        for category in categories:
             assert category in all_categories, f'Object class {category} not in \
                                                  list of available classes: {all_categories}'
 
@@ -119,16 +119,14 @@ class ModelNet(Dataset):
 
     def get_data(self, index):
         obj_location = self.paths[index]
-        mesh = import_mesh(str(obj_location), with_face_colors=True)
-        return mesh
+        return import_mesh(str(obj_location), with_face_colors=True)
 
     def get_attributes(self, index):
-        attributes = {
+        return {
             'name': self.names[index],
             'path': self.paths[index],
-            'label': self.labels[index]
+            'label': self.labels[index],
         }
-        return attributes
 
     def get_cache_key(self, index):
         return self.names[index]

@@ -201,9 +201,9 @@ class TestSimpleDibrSoftMask:
 class TestDibrSoftMask:
     @pytest.fixture(autouse=True)
     def mesh(self):
-        mesh = kal.io.obj.import_mesh(os.path.join(MODEL_DIR, 'model.obj'),
-                                      with_materials=False)
-        return mesh
+        return kal.io.obj.import_mesh(
+            os.path.join(MODEL_DIR, 'model.obj'), with_materials=False
+        )
 
     @pytest.fixture(autouse=True)
     def faces(self, mesh, flip):
@@ -401,9 +401,9 @@ class TestDibrSoftMask:
 class TestDibrRasterization:
     @pytest.fixture(autouse=True)
     def mesh(self):
-        mesh = kal.io.obj.import_mesh(os.path.join(MODEL_DIR, 'model.obj'),
-                                      with_materials=True)
-        return mesh
+        return kal.io.obj.import_mesh(
+            os.path.join(MODEL_DIR, 'model.obj'), with_materials=True
+        )
 
     @pytest.fixture(autouse=True)
     def faces(self, mesh, flip):
@@ -489,7 +489,7 @@ class TestDibrRasterization:
                                 sigmainv, boxlen, knum, multiplier, rast_backend):
         if rast_backend in {'nvdiffrast_fwd', 'nvdiffrast'}:
             if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-                pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+                pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
             if face_vertices_z.dtype == torch.double:
                 pytest.skip("nvdiffrast not compatible with double")
         gt_interpolated_features, gt_face_idx = rasterize(

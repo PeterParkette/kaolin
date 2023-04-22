@@ -28,7 +28,7 @@ SIMPLE_DIR = os.path.join(ROOT_DIR, 'simple_obj/')
 def _get_num_mtl(mtl_path):
     num_mtl = 0
     with open(mtl_path, 'r') as f:
-        for line in f.readlines():
+        for line in f:
             data = line.split()
             if len(data) == 0:
                 continue
@@ -224,7 +224,7 @@ class TestLoadObj:
         num_materials = 0
         num_face_groups = 0
         with open(os.path.join(ROOT_DIR, "model.obj")) as f:
-            for line in f.readlines():
+            for line in f:
                 data = line.split()
                 if len(data) == 0:
                     continue

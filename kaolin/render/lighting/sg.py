@@ -452,10 +452,14 @@ class UnbatchedReducedSgInnerProduct(torch.autograd.Function):
         other_sharpness = other_sharpness.contiguous()
         ctx.save_for_backward(amplitude, direction, sharpness,
                               other_amplitude, other_direction, other_sharpness)
-        output = _C.render.sg.unbatched_reduced_sg_inner_product_forward_cuda(
-                amplitude, direction, sharpness,
-                other_amplitude, other_direction, other_sharpness)
-        return output
+        return _C.render.sg.unbatched_reduced_sg_inner_product_forward_cuda(
+            amplitude,
+            direction,
+            sharpness,
+            other_amplitude,
+            other_direction,
+            other_sharpness,
+        )
 
     @staticmethod
     def backward(ctx, grad_out):
@@ -498,14 +502,22 @@ def unbatched_reduced_sg_inner_product(amplitude, direction, sharpness,
     assert other_amplitude.ndim == 2 and other_amplitude.shape[1] == 3
     assert other_direction.shape == other_amplitude.shape
     assert other_sharpness.shape == other_amplitude.shape[:1]
-    if other_amplitude.shape[0] >= 8:
-        output = UnbatchedReducedSgInnerProduct.apply(
-            amplitude, direction, sharpness,
-            other_amplitude, other_direction, other_sharpness
+    return (
+        UnbatchedReducedSgInnerProduct.apply(
+            amplitude,
+            direction,
+            sharpness,
+            other_amplitude,
+            other_direction,
+            other_sharpness,
         )
-    else:
-        output = unbatched_sg_inner_product(
-            amplitude, direction, sharpness,
-            other_amplitude, other_direction, other_sharpness
+        if other_amplitude.shape[0] >= 8
+        else unbatched_sg_inner_product(
+            amplitude,
+            direction,
+            sharpness,
+            other_amplitude,
+            other_direction,
+            other_sharpness,
         ).sum(1)
-    return output
+    )

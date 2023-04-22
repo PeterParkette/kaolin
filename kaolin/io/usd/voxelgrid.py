@@ -219,8 +219,7 @@ def export_voxelgrid(file_path, voxelgrid, scene_path='/World/VoxelGrids/voxelgr
     """
     if time is None:
         time = Usd.TimeCode.Default()
-    stage = export_voxelgrids(file_path, [voxelgrid], [scene_path], times=[time])
-    return stage
+    return export_voxelgrids(file_path, [voxelgrid], [scene_path], times=[time])
 
 
 def export_voxelgrids(file_path, voxelgrids, scene_paths=None, times=None):

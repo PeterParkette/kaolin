@@ -84,7 +84,6 @@ class TestSamplePoints:
                               [1.5, 1., 3.],
                               [0.5, 1., 3.]]],
                             device=device, dtype=dtype)
-        return vertices
 
     @pytest.fixture(autouse=True)
     def faces(self, device, dtype):

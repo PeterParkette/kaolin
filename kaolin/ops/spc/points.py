@@ -47,8 +47,7 @@ def quantize_points(x, level):
         (torch.ShortTensor): Quantized 3D points, of same shape than x.
     """
     res = 2 ** level
-    qpts = torch.floor(torch.clamp(res * (x + 1.0) / 2.0, 0, res - 1.)).short()
-    return qpts
+    return torch.floor(torch.clamp(res * (x + 1.0) / 2.0, 0, res - 1.)).short()
 
 def unbatched_points_to_octree(points, level, sorted=False):
     r"""Convert (quantized) 3D points to an octree.

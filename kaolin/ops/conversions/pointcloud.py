@@ -136,9 +136,9 @@ def pointclouds_to_voxelgrids(pointclouds, resolution, origin=None, scale=None, 
     # Normalize pointcloud with origin and scale
     pointclouds = (pointclouds - origin.unsqueeze(1)) / scale.view(-1, 1, 1)
 
-    vg = _base_points_to_voxelgrids(pointclouds, resolution, return_sparse=return_sparse)
-
-    return vg
+    return _base_points_to_voxelgrids(
+        pointclouds, resolution, return_sparse=return_sparse
+    )
 
 def unbatched_pointcloud_to_spc(pointcloud, level, features=None):
     r"""This function takes as input a single point-cloud - a set of continuous coordinates in 3D,

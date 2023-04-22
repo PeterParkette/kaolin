@@ -248,27 +248,27 @@ class Spc(object):
                                    non_blocking=non_blocking,
                                    memory_format=memory_format)
 
-        # torch tensor.to() return the self if the type is identical
         if _octrees.data_ptr() == self.octrees.data_ptr():
             return self
+        _exsum = (
+            self._exsum.to(
+                device=device,
+                non_blocking=non_blocking,
+                memory_format=memory_format,
+            )
+            if self._exsum is not None
+            else None
+        )
+        if self._point_hierarchies is not None:
+            _point_hierarchies = self.point_hierarchies.to(
+                device=device,
+                non_blocking=non_blocking,
+                memory_format=memory_format)
         else:
-            if self._exsum is not None:
-                _exsum = self._exsum.to(device=device,
-                                        non_blocking=non_blocking,
-                                        memory_format=memory_format)
-            else:
-                _exsum = None
+            _point_hierarchies = None
 
-            if self._point_hierarchies is not None:
-                _point_hierarchies = self.point_hierarchies.to(
-                    device=device,
-                    non_blocking=non_blocking,
-                    memory_format=memory_format)
-            else:
-                _point_hierarchies = None
-
-            return Spc(_octrees, self.lengths, self._max_level, self._pyramids,
-                       _exsum, _point_hierarchies)
+        return Spc(_octrees, self.lengths, self._max_level, self._pyramids,
+                   _exsum, _point_hierarchies)
 
     def cuda(self, device='cuda', non_blocking=False,
              memory_format=torch.preserve_format):

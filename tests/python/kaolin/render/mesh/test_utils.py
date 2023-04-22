@@ -31,8 +31,7 @@ class TestTextureMapping:
             [41.0, 42.0, 43.0, 44.0, 45.0]
         ], device=device, dtype=dtype)
         texture_map_ll2 = texture_map_l1 + 100
-        texture_map = torch.stack((texture_map_l1, texture_map_ll2)).unsqueeze(1)
-        return texture_map
+        return torch.stack((texture_map_l1, texture_map_ll2)).unsqueeze(1)
 
     @pytest.fixture(autouse=True)
     def texture_map_3d(self, texture_map_1d):

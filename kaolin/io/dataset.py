@@ -79,7 +79,7 @@ def _get_saving_actions(dataset, cache_dir, save_on_disk=False,
         if cache_dir is None:
             raise ValueError("cache_dir should be provided with save_on_disk")
         cache_dir.mkdir(parents=True, exist_ok=True)
-        cached_ids = list(p.stem for p in cache_dir.glob(r'*'))
+        cached_ids = [p.stem for p in cache_dir.glob(r'*')]
 
         # Check that the keys on save_on_disk are actual outputs from preprocessing
         for k in save_on_disk:
@@ -95,7 +95,7 @@ def _get_saving_actions(dataset, cache_dir, save_on_disk=False,
             # If the number of folder (len(dataset)) is different, 
             # something is probably wrong with the existing data
             #   note: reporting error directory with POSIX path to ease regex matching without raising encoding errors due to Windows backslashes
-            if len(cached_ids) > 0 and len(cached_ids) != len(dataset):
+            if cached_ids and len(cached_ids) != len(dataset):
                 raise RuntimeError(f"{len(cached_ids)} files already exist on "
                                    f"{cache_dir.resolve().as_posix()} this dataset as {len(dataset)} files "
                                    "so caching is too ambiguous and error-prone "
@@ -185,7 +185,7 @@ class CachedDataset(Dataset):
         if len(self.to_save_on_ram) == 0 and len(self.to_save_on_disk) == 0:
             # If nothing is to be stored on RAM and everything is already stored on disk
             # there is no point in running the preprocessing
-            self.data = [{} for i in range(len(self))]
+            self.data = [{} for _ in range(len(self))]
         elif cache_at_runtime:
             # __getitem__(idx) will execute the preprocessing task
             # at runtime in case self.data[idx] is None.
@@ -196,29 +196,33 @@ class CachedDataset(Dataset):
             self.data = []
             # Run the preprocessing + saving
             try:
-               if num_workers > 0:
-                   # With multiprocessing
-                   p = Pool(num_workers)
-                   try:
-                       iterator = p.imap(
-                           _parallel_save_task, [(
-                               self.cache_dir, idx, dataset.__getitem__,
-                               self.to_save_on_disk, self.to_not_save,
-                           ) for idx in range(len(self))])
-                       for _ in tqdm(range(len(self)), desc=progress_message):
-                           self.data.append(next(iterator))
-                   finally:
-                       p.close()
-                       p.join()
-               else:
-                   for idx in tqdm(range(len(self)), desc=progress_message):
-                       self.data.append(_save_task(
-                           self.cache_dir,
-                           idx,
-                           dataset.__getitem__,
-                           self.to_save_on_disk,
-                           self.to_not_save
-                       ))
+                if num_workers > 0:
+                    # With multiprocessing
+                    p = Pool(num_workers)
+                    try:
+                        iterator = p.imap(
+                            _parallel_save_task, [(
+                                self.cache_dir, idx, dataset.__getitem__,
+                                self.to_save_on_disk, self.to_not_save,
+                            ) for idx in range(len(self))])
+                        self.data.extend(
+                            next(iterator)
+                            for _ in tqdm(range(len(self)), desc=progress_message)
+                        )
+                    finally:
+                        p.close()
+                        p.join()
+                else:
+                    self.data.extend(
+                        _save_task(
+                            self.cache_dir,
+                            idx,
+                            dataset.__getitem__,
+                            self.to_save_on_disk,
+                            self.to_not_save,
+                        )
+                        for idx in tqdm(range(len(self)), desc=progress_message)
+                    )
             except Exception as e:
                 # Cleaning if the preprocessing is returning an error
                 # there is not point in keeping the files that have been
@@ -227,8 +231,8 @@ class CachedDataset(Dataset):
                 raise e
 
     def _clean_cache_dir(self):
-        to_remove_paths = set()
         if len(self.to_save_on_disk) > 0:
+            to_remove_paths = set()
             for k in self.to_save_on_disk:
                 to_remove_paths.update(set(self.cache_dir.glob(f'[0-9]*/{k}.pt')))
             if set(self.cache_dir.glob('[0-9]*/*.pt')) == set(to_remove_paths):
@@ -277,7 +281,7 @@ def _get_hash(x):
     """Generate a hash from a string, or dictionary.
     """
     if isinstance(x, dict):
-        x = tuple(sorted(pair for pair in x.items()))
+        x = tuple(sorted(iter(x.items())))
 
     return hashlib.md5(bytes(repr(x), 'utf-8')).hexdigest()
 
@@ -319,7 +323,7 @@ class Cache(object):
         self.func = func
         self.cache_dir = Path(cache_dir) / str(cache_key)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.cached_ids = set([p.stem for p in self.cache_dir.glob('*')])
+        self.cached_ids = {p.stem for p in self.cache_dir.glob('*')}
 
     def __call__(self, unique_id: str, *args, **kwargs):
         """Execute self.func if not cached, otherwise, read data from disk.
@@ -364,8 +368,7 @@ class Cache(object):
         fpath = self.cache_dir / f'{unique_id}.p'
 
         if not fpath.exists():
-            raise ValueError(
-                'Cache does not exist for key {}'.format(unique_id))
+            raise ValueError(f'Cache does not exist for key {unique_id}')
         else:
             output = self._read(fpath)
 
@@ -472,8 +475,6 @@ class ProcessedDataset(KaolinDataset):
         self.transform = transform
 
         if preprocessing_transform is not None:
-            desc = 'Applying preprocessing'
-
             assert cache_dir is not None, 'Cache directory is not given'
 
             self.cache_convert = Cache(
@@ -482,10 +483,13 @@ class ProcessedDataset(KaolinDataset):
                 cache_key=_get_hash(repr(preprocessing_transform))
             )
 
-            uncached = [idx for idx in range(len(self)) if
-                        self.get_cache_key(idx) not in
-                        self.cache_convert.cached_ids]
-            if len(uncached) > 0:
+            if uncached := [
+                idx
+                for idx in range(len(self))
+                if self.get_cache_key(idx) not in self.cache_convert.cached_ids
+            ]:
+                desc = 'Applying preprocessing'
+
                 if num_workers == 0:
                     with torch.no_grad():
                         for idx in tqdm(range(len(self)), desc=desc,
@@ -501,7 +505,7 @@ class ProcessedDataset(KaolinDataset):
                             [(idx, self._get_base_data, self.get_cache_key,
                               self.cache_convert)
                              for idx in uncached])
-                        for i in tqdm(range(len(uncached)), desc=desc,
+                        for _ in tqdm(range(len(uncached)), desc=desc,
                                       disable=no_progress):
                             next(iterator)
                     finally:

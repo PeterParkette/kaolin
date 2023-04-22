@@ -36,18 +36,36 @@ def out_dir():
 @pytest.fixture(scope='module')
 def mesh():
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    obj_mesh = obj.import_mesh(
-        os.path.join(cur_dir, os.pardir, os.pardir, os.pardir, os.pardir, 'samples/rocket.obj'),
-        with_normals=True, with_materials=True, error_handler=obj.skip_error_handler)
-    return obj_mesh
+    return obj.import_mesh(
+        os.path.join(
+            cur_dir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            'samples/rocket.obj',
+        ),
+        with_normals=True,
+        with_materials=True,
+        error_handler=obj.skip_error_handler,
+    )
 
 @pytest.fixture(scope='module')
 def mesh_alt():
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    obj_mesh = obj.import_mesh(
-        os.path.join(cur_dir, os.pardir, os.pardir, os.pardir, os.pardir, 'samples/model.obj'),
-        with_normals=True, with_materials=True, error_handler=obj.skip_error_handler)
-    return obj_mesh
+    return obj.import_mesh(
+        os.path.join(
+            cur_dir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            'samples/model.obj',
+        ),
+        with_normals=True,
+        with_materials=True,
+        error_handler=obj.skip_error_handler,
+    )
 
 @pytest.fixture(scope='module')
 def hetero_mesh_path():
@@ -241,11 +259,7 @@ class TestMeshes:
     def test_import_multiple(self, scene_paths, out_dir, mesh, mesh_alt, input_stage):
 
         out_path = os.path.join(out_dir, self.file_name)
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
-
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         meshes_in = usd.import_meshes(path_or_stage, scene_paths)
 
         # Confirm imported vertices and faces match original input
@@ -257,11 +271,7 @@ class TestMeshes:
     @pytest.mark.parametrize('input_stage', [False, True])
     def test_import_multiple_no_paths(self, out_dir, mesh, mesh_alt, input_stage):
         out_path = os.path.join(out_dir, self.file_name)
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
-
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         meshes_in = usd.import_meshes(path_or_stage)
 
         # Confirm imported vertices and faces match original input
@@ -274,10 +284,7 @@ class TestMeshes:
     def test_import_single_flattened(self, scene_paths, out_dir, mesh, mesh_alt, input_stage):
         """Will flatten all meshes in USD into a single mesh."""
         out_path = os.path.join(out_dir, self.file_name)
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         mesh_in = usd.import_mesh(path_or_stage)
         assert len(mesh_in.vertices) == (len(mesh.vertices) + len(mesh_alt.vertices))
         assert len(mesh_in.faces) == (len(mesh.faces) + len(mesh_alt.faces))
@@ -314,10 +321,7 @@ class TestMeshes:
         pv = UsdGeom.PrimvarsAPI(stage.GetPrimAtPath(scene_path)).GetPrimvar('st')
         assert pv.GetInterpolation() == 'faceVarying'
 
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         mesh_in = usd.import_mesh(path_or_stage)
         assert torch.allclose(mesh_in.uvs, uvs)
 
@@ -334,10 +338,7 @@ class TestMeshes:
         pv = UsdGeom.PrimvarsAPI(stage.GetPrimAtPath(scene_path)).GetPrimvar('st')
         assert pv.GetInterpolation() == 'vertex'
 
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         mesh_in = usd.import_mesh(path_or_stage)
         assert torch.allclose(mesh_in.uvs, uvs)
 
@@ -354,10 +355,7 @@ class TestMeshes:
         pv = UsdGeom.PrimvarsAPI(stage.GetPrimAtPath(scene_path)).GetPrimvar('st')
         assert pv.GetInterpolation() == 'faceVarying'
 
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         mesh_in = usd.import_mesh(path_or_stage)
         assert torch.allclose(mesh_in.uvs, uvs)
 

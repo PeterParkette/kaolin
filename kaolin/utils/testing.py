@@ -255,25 +255,18 @@ def tensor_info(t, name='', print_stats=False, detailed=False):
                 t.requires_grad, t.is_leaf, t.device, t.layout)
 
     if t is None:
-        return '%s: None' % name
+        return f'{name}: None'
 
     shape_str = ''
     if hasattr(t, 'shape'):
-        shape_str = '%s ' % str(t.shape)
+        shape_str = f'{str(t.shape)} '
 
-    if hasattr(t, 'dtype'):
-        type_str = '%s' % str(t.dtype)
-    else:
-        type_str = '{}'.format(type(t))
-
+    type_str = f'{str(t.dtype)}' if hasattr(t, 'dtype') else '{}'.format(type(t))
     name_str = ''
     if name is not None and len(name) > 0:
-        name_str = '%s: ' % name
+        name_str = f'{name}: '
 
-    return ('%s%s(%s) %s %s' %
-            (name_str, shape_str, type_str,
-             (_get_stats_str() if print_stats else ''),
-             (_get_details_str() if detailed else '')))
+    return f"{name_str}{shape_str}({type_str}) {_get_stats_str() if print_stats else ''} {_get_details_str() if detailed else ''}"
 
 def contained_torch_equal(elem, other):
     """Check for equality of two objects potentially containing tensors.

@@ -100,9 +100,13 @@ def random_shape_per_tensor(batch_size, min_shape=None, max_shape=None):
     """
     if min_shape is None:
         min_shape = [1] * len(max_shape)
-    output = torch.cat([torch.randint(low_dim, high_dim + 1, size=(batch_size, 1))
-                        for low_dim, high_dim in zip(min_shape, max_shape)], dim=1)
-    return output
+    return torch.cat(
+        [
+            torch.randint(low_dim, high_dim + 1, size=(batch_size, 1))
+            for low_dim, high_dim in zip(min_shape, max_shape)
+        ],
+        dim=1,
+    )
 
 def random_tensor(low, high, shape, dtype=torch.float, device='cpu'):
     """Generate a random tensor.
@@ -160,10 +164,10 @@ def random_spc_octrees(batch_size, max_level, device='cpu'):
     """
     octrees = []
     lengths = []
-    for bs in range(batch_size):
+    for _ in range(batch_size):
         octree_length = 0
         cur_num_nodes = 1
-        for i in range(max_level):
+        for _ in range(max_level):
             cur_nodes = torch.randint(1, 256, size=(cur_num_nodes,),
                                       dtype=torch.uint8, device=device)
             cur_num_nodes = torch.sum(uint8_to_bits(cur_nodes))

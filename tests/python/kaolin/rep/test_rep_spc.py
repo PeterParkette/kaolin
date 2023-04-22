@@ -166,10 +166,7 @@ class TestSpc:
                     expected_pyramids, expected_exsum, expected_point_hierarchies):
         spc = Spc(octrees, lengths, expected_max_level, expected_pyramids,
                   expected_exsum, expected_point_hierarchies)
-        if using_to:
-            spc = spc.to('cpu')
-        else:
-            spc = spc.cpu()
+        spc = spc.to('cpu') if using_to else spc.cpu()
         assert torch.equal(spc.octrees, octrees.cpu())
         assert torch.equal(spc.lengths, lengths)
         assert spc.max_level == expected_max_level
@@ -182,10 +179,7 @@ class TestSpc:
                      expected_pyramids, expected_exsum, expected_point_hierarchies):
         spc = Spc(octrees.cpu(), lengths, expected_max_level, expected_pyramids,
                   expected_exsum.cpu(), expected_point_hierarchies.cpu())
-        if using_to:
-            spc = spc.to('cuda')
-        else:
-            spc = spc.cuda()
+        spc = spc.to('cuda') if using_to else spc.cuda()
         assert torch.equal(spc.octrees, octrees)
         assert torch.equal(spc.lengths, lengths)
         assert spc.max_level == expected_max_level

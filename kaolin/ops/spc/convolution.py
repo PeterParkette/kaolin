@@ -239,9 +239,7 @@ class Conv3d(nn.Module):
                       self.weight, self.kernel_vectors, self.jump, self.bias)
 
     def __repr__(self):
-        s = '(in={}, out={}, kernel_vector_size={})'.format(
-            self.in_channels, self.out_channels,
-            self.kernel_vectors_size)
+        s = f'(in={self.in_channels}, out={self.out_channels}, kernel_vector_size={self.kernel_vectors_size})'
         return self.__class__.__name__ + s
 
 class ConvTranspose3dFunction(Function):
@@ -459,7 +457,5 @@ class ConvTranspose3d(nn.Module):
                                 self.weight, self.kernel_vectors, self.jump, self.bias)
 
     def __repr__(self):
-        s = '(in={}, out={}, kernel_vector_size={})'.format(
-            self.in_channels, self.out_channels,
-            self.kernel_vectors_size)
+        s = f'(in={self.in_channels}, out={self.out_channels}, kernel_vector_size={self.kernel_vectors_size})'
         return self.__class__.__name__ + s

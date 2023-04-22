@@ -183,15 +183,14 @@ class GraphConv(nn.Module):
             else:
                 result = sparse_bmm(adj, self.linear(node_feat))
 
+        elif normalize_adj:
+            norm = torch.matmul(adj, torch.ones((adj.shape[0], 1),
+                                                device=node_feat.device))
+
+            result = torch.matmul(adj, self.linear(node_feat)) / norm
+
         else:
-            if normalize_adj:
-                norm = torch.matmul(adj, torch.ones((adj.shape[0], 1),
-                                                    device=node_feat.device))
-
-                result = torch.matmul(adj, self.linear(node_feat)) / norm
-
-            else:
-                result = torch.matmul(adj, self.linear(node_feat))
+            result = torch.matmul(adj, self.linear(node_feat))
 
         if self.self_layer:
             result += self.linear_self(node_feat)

@@ -90,9 +90,10 @@ def _convert_categories(categories):
             for c in categories):
         warnings.warn('Some or all of the categories requested are not part of \
             Shrec16. Data loading may fail if these categories are not avaliable.')
-    synsets = [label_to_synset[c] if c in label_to_synset.keys()
-               else c for c in categories]
-    return synsets
+    return [
+        label_to_synset[c] if c in label_to_synset.keys() else c
+        for c in categories
+    ]
 
 class SHREC16(Dataset):
     r"""Dataset class for SHREC16, used for the "Large-scale 3D shape retrieval
@@ -222,18 +223,16 @@ class SHREC16(Dataset):
 
     def get_data(self, index):
         obj_location = self.paths[index]
-        mesh = import_mesh(str(obj_location), error_handler=ignore_error_handler)
-        return mesh
+        return import_mesh(str(obj_location), error_handler=ignore_error_handler)
 
     def get_attributes(self, index):
         synset_idx = self.synset_idxs[index]
-        attributes = {
+        return {
             'name': self.names[index],
             'path': self.paths[index],
             'synset': self.synsets[synset_idx],
-            'labels': self.labels[synset_idx]
+            'labels': self.labels[synset_idx],
         }
-        return attributes
 
     def get_cache_key(self, index):
         return self.names[index]

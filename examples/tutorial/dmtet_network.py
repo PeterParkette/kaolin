@@ -12,7 +12,7 @@ class Decoder(torch.nn.Module):
             input_dims = input_ch
 
         net = (torch.nn.Linear(input_dims, internal_dims, bias=False), torch.nn.ReLU())
-        for i in range(hidden-1):
+        for _ in range(hidden-1):
             net = net + (torch.nn.Linear(internal_dims, internal_dims, bias=False), torch.nn.ReLU())
         net = net + (torch.nn.Linear(internal_dims, output_dims, bias=False),)
         self.net = torch.nn.Sequential(*net)
@@ -20,15 +20,14 @@ class Decoder(torch.nn.Module):
     def forward(self, p):
         if self.embed_fn is not None:
             p = self.embed_fn(p)
-        out = self.net(p)
-        return out
+        return self.net(p)
 
     def pre_train_sphere(self, iter):
         print ("Initialize SDF to sphere")
         loss_fn = torch.nn.MSELoss()
         optimizer = torch.optim.Adam(list(self.parameters()), lr=1e-4)
 
-        for i in tqdm(range(iter)):
+        for _ in tqdm(range(iter)):
             p = torch.rand((1024,3), device='cuda') - 0.5
             ref_value  = torch.sqrt((p**2).sum(-1)) - 0.3
             output = self(p)

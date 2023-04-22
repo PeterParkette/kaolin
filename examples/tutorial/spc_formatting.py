@@ -13,9 +13,9 @@ def push_pop_octree(q, oct_item):
         bit_idx += 1
         if parsed_bits & 1:
             if len(prefix) > 0:
-                q.append(prefix + f'-{bit_idx}')
+                q.append(f'{prefix}-{bit_idx}')
             else:
-                q.append(prefix + f'{bit_idx}')
+                q.append(f'{prefix}{bit_idx}')
         parsed_bits >>= 1
     return prefix
 
@@ -23,7 +23,7 @@ def format_octree_str(octree_byte, octree_path, level_idx, max_level):
     text = []
 
     level_color = color_by_level(level_idx - 1)
-    text += ['Level ' + colored(f'#{level_idx}, ', level_color)]
+    text += [f"Level {colored(f'#{level_idx}, ', level_color)}"]
 
     colored_path = []
     for i in range(len(octree_path)):

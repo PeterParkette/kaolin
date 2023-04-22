@@ -45,57 +45,52 @@ def import_mesh(path, with_face_colors=False):
     """
     vertices = []
     uvs = []
-    f = open(path, 'r', encoding='utf-8')
-    # Get metadata (number of vertices / faces (/ edges))
-    for line in f:
-        data = line.split()
-        if _is_void(data):
-            continue
-        if data[0].startswith('OFF'):
-            # ModelNet40 have some OFFnum_vertices num_faces
-            if len(data[0][3:]) > 0:
-                num_vertices = int(data[0][3:])
-                num_faces = int(data[1])
-                break
-            elif len(data) > 1:
-                num_vertices = int(data[1])
-                num_faces = int(data[2])
-                break
-            continue
-        num_vertices = int(data[0])
-        num_faces = int(data[1])
-        break
-
-    # Get vertices
-    for line in f:
-        data = line.split()
-        if _is_void(data):
-            continue
-        vertices.append([float(d) for d in data[:3]])
-        if len(vertices) == num_vertices:
+    with open(path, 'r', encoding='utf-8') as f:
+        # Get metadata (number of vertices / faces (/ edges))
+        for line in f:
+            data = line.split()
+            if _is_void(data):
+                continue
+            if data[0].startswith('OFF'):
+                # ModelNet40 have some OFFnum_vertices num_faces
+                if len(data[0][3:]) > 0:
+                    num_vertices = int(data[0][3:])
+                    num_faces = int(data[1])
+                    break
+                elif len(data) > 1:
+                    num_vertices = int(data[1])
+                    num_faces = int(data[2])
+                    break
+                continue
+            num_vertices = int(data[0])
+            num_faces = int(data[1])
             break
-    vertices = torch.FloatTensor(vertices)
 
-    # Get faces
-    faces = []
-    face_colors = []
-    for line in f:
-        data = line.split()
-        if _is_void(data):
-            continue
-        face_size = int(data[0])
-        faces.append([int(d) for d in data[1:face_size + 1]])
-        if with_face_colors:
-            face_colors.append([
-                float(d) for d in data[face_size + 1:face_size + 4]
-            ])
-        if len(faces) == num_faces:
-            break
-    faces = torch.LongTensor(faces)
-    if with_face_colors:
-        face_colors = torch.LongTensor(face_colors)
-    else:
-        face_colors = None
+        # Get vertices
+        for line in f:
+            data = line.split()
+            if _is_void(data):
+                continue
+            vertices.append([float(d) for d in data[:3]])
+            if len(vertices) == num_vertices:
+                break
+        vertices = torch.FloatTensor(vertices)
 
-    f.close()
+        # Get faces
+        faces = []
+        face_colors = []
+        for line in f:
+            data = line.split()
+            if _is_void(data):
+                continue
+            face_size = int(data[0])
+            faces.append([int(d) for d in data[1:face_size + 1]])
+            if with_face_colors:
+                face_colors.append([
+                    float(d) for d in data[face_size + 1:face_size + 4]
+                ])
+            if len(faces) == num_faces:
+                break
+        faces = torch.LongTensor(faces)
+        face_colors = torch.LongTensor(face_colors) if with_face_colors else None
     return return_type(vertices, faces, face_colors)

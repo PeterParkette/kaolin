@@ -37,7 +37,7 @@ _IS_NUMPY = (False, True)                           # Input is a numpy array
 # data_idx, with_batch_dim, with_row_dim
 @pytest.fixture(params=itertools.product(_LOOK_AT_DATA_IDX, _IS_BATCH_DIM, _IS_ROW_DIM, _IS_NUMPY))
 def lookat_data(request):
-    data = list()
+    data = []
 
     def _add_entry(at, eye, up, view_matrix):
         data.append({
@@ -92,7 +92,7 @@ def lookat_data(request):
 # data_idx, with_batch_dim, with_row_dim
 @pytest.fixture(params=itertools.product(_CAM_POS_DATA_IDX, _IS_BATCH_DIM, _IS_ROW_DIM, _IS_NUMPY))
 def cam_pos_data(request):
-    data = list()
+    data = []
 
     def _add_entry(cam_pos, cam_dir, view_matrix):
         data.append({
@@ -213,7 +213,7 @@ def sample_lookat_data(request):
 
 @pytest.fixture(params=itertools.product(_YPR_DATA_IDX, _IS_BATCH_DIM))
 def rotation_data(request):
-    data = list()
+    data = []
     rotation_amount = math.pi / 4
 
     def _add_entry(matrix_entries):
@@ -657,7 +657,7 @@ class TestCameraExtrinsicsParams:
 
         optimizer = torch.optim.SGD([extrinsics.parameters()], lr=0.001, momentum=0.9)
         criterion = torch.nn.functional.mse_loss
-        for i in range(50):
+        for _ in range(50):
             optimizer.zero_grad()
             view_matrix = extrinsics.view_matrix()
             loss = criterion(view_matrix, target_matrix)
@@ -669,7 +669,7 @@ class TestCameraExtrinsicsParams:
         assert criterion(original_matrix, target_matrix) > criterion(extrinsics.view_matrix(), target_matrix)
 
         # Sanity check: Ensure transformation stays rigid (rotation axes must be orthonormal)
-        if not (device == 'cuda' and dtype == torch.half): # "lu_cuda" not implemented for 'Half'
+        if device != 'cuda' or dtype != torch.half: # "lu_cuda" not implemented for 'Half'
             assert (torch.isclose(torch.det(extrinsics.R), torch.ones(num_cams, device=device, dtype=dtype))).all()
 
     @pytest.mark.parametrize('backend', CameraExtrinsics.available_backends())
@@ -681,7 +681,7 @@ class TestCameraExtrinsicsParams:
         target_matrix = torch.eye(4).to(device, dtype)
         optimizer = torch.optim.SGD([extrinsics.parameters()], lr=0.001, momentum=0.9)
         criterion = torch.nn.functional.mse_loss
-        for i in range(5):
+        for _ in range(5):
             optimizer.zero_grad()
             view_matrix = extrinsics.view_matrix()
             loss = criterion(view_matrix, target_matrix)
@@ -714,7 +714,7 @@ class TestCameraExtrinsicsParams:
 
         optimizer = torch.optim.SGD([diff_extrinsics.parameters()], lr=0.001, momentum=0.9)
         criterion = torch.nn.functional.mse_loss
-        for i in range(50):
+        for _ in range(50):
             optimizer.zero_grad()
             transformed_vecs = diff_extrinsics.transform(vectors_data)
             loss = criterion(transformed_vecs, target_vecs)
@@ -728,10 +728,10 @@ class TestCameraExtrinsicsParams:
         # Sanity check: Ensure learned view matrix is closer to target view than initial, within SE(3)
         transformed_vecs = diff_extrinsics.transform(vectors_data)
         assert criterion(original_matrix, expected_view_matrix) > \
-               criterion(diff_extrinsics.view_matrix(), expected_view_matrix)
+                   criterion(diff_extrinsics.view_matrix(), expected_view_matrix)
 
         # Sanity check: Ensure transformation stays rigid (rotation axes must be orthonormal)
-        if not (device == 'cuda' and dtype == torch.half):  # "lu_cuda" not implemented for 'Half'
+        if device != 'cuda' or dtype != torch.half:  # "lu_cuda" not implemented for 'Half'
             assert (torch.isclose(torch.det(extrinsics.R), torch.ones(num_cams, device=device, dtype=dtype))).all()
 
 

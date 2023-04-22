@@ -106,10 +106,7 @@ class TestPointCloud:
     @pytest.mark.parametrize('input_stage', [False, True])
     def test_import_single(self, out_dir, pointcloud, input_stage):
         out_path = os.path.join(out_dir, 'pointcloud.usda')
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         pointcloud_in = usd.import_pointcloud(path_or_stage, scene_path=self.scene_path).points
 
         # Confirm imported pointcloud matches original input
@@ -118,10 +115,7 @@ class TestPointCloud:
     @pytest.mark.parametrize('input_stage', [False, True])
     def test_import_multiple(self, out_dir, pointcloud, input_stage):
         out_path = os.path.join(out_dir, 'pointclouds.usda')
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         pointcloud_in_list = usd.import_pointclouds(path_or_stage)
 
         # Confirm imported pointcloud matches original input
@@ -133,10 +127,7 @@ class TestPointCloud:
     def test_import_single_instancer(self, out_dir, pointcloud_instancer, input_stage):
         # Test that the read from UsdPointInstancer is the same as the read from UsdGeomPoints
         out_path = os.path.join(out_dir, 'pointcloud.usda')
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         pointcloud_in, colors_in, normals_in = usd.import_pointcloud(
             path_or_stage, scene_path=self.scene_path)
 
@@ -147,10 +138,7 @@ class TestPointCloud:
     def test_import_multiple_instancer(self, out_dir, pointcloud_instancer, input_stage):
         # Test that the read from UsdPointInstancer is the same as the read from UsdGeomPoints
         out_path = os.path.join(out_dir, 'pointclouds.usda')
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         pointcloud_in_list = usd.import_pointclouds(path_or_stage)
 
         # Confirm imported pointcloud matches original input
@@ -174,10 +162,7 @@ class TestPointCloud:
     @pytest.mark.parametrize('input_stage', [False, True])
     def test_import_single_color(self, out_dir, pointcloud, input_stage):
         out_path = os.path.join(out_dir, 'pointcloud_colors.usda')
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         pointcloud_in, color, _ = usd.import_pointcloud(path_or_stage, scene_path=self.scene_path)
 
         # Confirm imported pointcloud matches original input

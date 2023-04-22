@@ -107,7 +107,7 @@ color_hierarchy = encode(colors=colors,
                          level=level)
 
 # Print root node color
-print(f'Final encoded value (average of averages):')
+print('Final encoded value (average of averages):')
 print(color_hierarchy[0])
 # This will be the average of averages, over the entire spc hierarchy. Since the initial random colors
 # came from a uniform distribution, this should approach [0.5, 0.5, 0.5, 1.0] as 'level' increases

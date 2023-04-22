@@ -54,13 +54,11 @@ def packed_simple_sum(tensor, numel_per_tensor):
     """
     assert tensor.shape[-1] == 1
     if torch.cuda.is_available() and tensor.is_cuda and not numel_per_tensor.is_cuda:
-        output = _PackedSimpleSumCuda.apply(tensor, numel_per_tensor)
-    else:
-        output = []
-        last_id = 0
-        for i, numel in enumerate(numel_per_tensor):
-            first_id = last_id
-            last_id += int(numel)
-            output.append(torch.sum(tensor[first_id:last_id]))
-        output = torch.stack(output, dim=0)
-    return output
+        return _PackedSimpleSumCuda.apply(tensor, numel_per_tensor)
+    output = []
+    last_id = 0
+    for numel in numel_per_tensor:
+        first_id = last_id
+        last_id += int(numel)
+        output.append(torch.sum(tensor[first_id:last_id]))
+    return torch.stack(output, dim=0)
