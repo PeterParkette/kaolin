@@ -36,5 +36,4 @@ def mask_iou(lhs_mask, rhs_mask):
     iou_up = torch.sum(sil_mul.reshape(batch_size, -1), dim=1)
     iou_down = torch.sum((sil_add - sil_mul).reshape(batch_size, -1), dim=1)
     iou_neg = iou_up / (iou_down + 1e-10)
-    mask_loss = 1.0 - torch.mean(iou_neg)
-    return mask_loss
+    return 1.0 - torch.mean(iou_neg)

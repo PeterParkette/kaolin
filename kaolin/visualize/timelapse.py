@@ -32,8 +32,9 @@ class Timelapse:
         lengths = {k: len(v) for k, v in kwargs.items() if v is not None}
         assert lengths, 'No attributes provided.'
         num_samples = list(lengths.values())[0]
-        assert all([v == num_samples for v in lengths.values()]), \
-            f'Number of samples for each attribute must be equal: {lengths}'
+        assert all(
+            v == num_samples for v in lengths.values()
+        ), f'Number of samples for each attribute must be equal: {lengths}'
 
         return_params = []
         for v in kwargs.values():
@@ -219,10 +220,7 @@ def _get_timestamps(filenames):
     Returns the timestamps of all filenames as a dictionary keyed by
     filename. Will throw error if files do not exits.
     """
-    res = {}
-    for f in filenames:
-        res[f] = os.stat(f).st_mtime_ns
-    return res
+    return {f: os.stat(f).st_mtime_ns for f in filenames}
 
 
 class TimelapseParser(object):
@@ -269,7 +267,7 @@ class TimelapseParser(object):
 
         def add_instance(self, new_id, end_timecode):
             if new_id in self.ids:
-                raise RuntimeError('Id {} already added for category {}'.format(new_id, self.category))
+                raise RuntimeError(f'Id {new_id} already added for category {self.category}')
             self.ids.append(new_id)
             self.ids.sort()
             self.end_time = max(self.end_time, end_timecode)
@@ -296,7 +294,7 @@ class TimelapseParser(object):
         """
         fpath_key = (type, category, int(id))
         if fpath_key not in self.filepaths:
-            logger.error('Key {} not in filepaths: {}'.format(fpath_key, self.filepaths))
+            logger.error(f'Key {fpath_key} not in filepaths: {self.filepaths}')
             return None
         return self.filepaths[fpath_key]
 
@@ -309,7 +307,7 @@ class TimelapseParser(object):
         filepaths = TimelapseParser.get_filepaths(self.logdir)
         timestamps = _get_timestamps(filepaths.values())
         if timestamps != self.timestamps:
-            logger.info('Changes to logdirectory detected: {}'.format(self.logdir))
+            logger.info(f'Changes to logdirectory detected: {self.logdir}')
             self.filepaths = filepaths
             self.timestamps = timestamps
             self.dir_info = TimelapseParser.parse_filepath_info(self.filepaths)
@@ -318,10 +316,7 @@ class TimelapseParser(object):
 
     @staticmethod
     def _count_items(cat_infos):
-        total = 0
-        for cat in cat_infos:
-            total += len(cat['ids'])
-        return total
+        return sum(len(cat['ids']) for cat in cat_infos)
 
     def num_mesh_items(self):
         return TimelapseParser._count_items(self.dir_info['mesh'])
@@ -365,21 +360,21 @@ class TimelapseParser(object):
 
         filepaths = {}
         for typestr in TimelapseParser.__SUPPORTED_TYPES:
-            usd_pattern = '{}*.usd'.format(typestr)
+            usd_pattern = f'{typestr}*.usd'
             files = glob.glob(os.path.join(logdir, '**', usd_pattern), recursive=True)
 
-            if len(files) == 0:
-                logger.info('No checkpoints found for type {}: no files matched pattern {} in {}'.format(
-                    typestr, usd_pattern, logdir))
+            if not files:
+                logger.info(
+                    f'No checkpoints found for type {typestr}: no files matched pattern {usd_pattern} in {logdir}'
+                )
 
             for fpath in files:
                 cat = os.path.dirname(os.path.relpath(fpath, logdir))
                 m = re.match(fname_pattern, os.path.basename(fpath))
                 if m is None:
-                    logger.error('USD {} basename does not match pattern {}'.format(
-                        fpath, fname_pattern))
+                    logger.error(f'USD {fpath} basename does not match pattern {fname_pattern}')
                     continue
-                num = int(m.group(2))
+                num = int(m[2])
                 filepaths[(typestr, cat, num)] = fpath
 
         return filepaths
@@ -401,11 +396,7 @@ class TimelapseParser(object):
 
             # Note: stage.GetEndTimeCode() may store incorrect value
             times = io.usd.get_authored_time_samples(fpath)
-            if len(times) == 0:
-                end_time = 0
-            else:
-                end_time = times[-1]
-
+            end_time = 0 if len(times) == 0 else times[-1]
             typestr, cat, id_num = k
 
             if typestr not in info:
@@ -414,10 +405,10 @@ class TimelapseParser(object):
                 info[typestr][cat] = TimelapseParser.CategoryInfo(cat)
             info[typestr][cat].add_instance(id_num, end_time)
 
-        result = {}  # { "mesh": [ CategoryInfo (serializable dict) ] }
-        for typestr, catdict in info.items():
-            result[typestr] = [x.serializable() for x in sorted(catdict.values())]
-
+        result = {
+            typestr: [x.serializable() for x in sorted(catdict.values())]
+            for typestr, catdict in info.items()
+        }
         for typestr in TimelapseParser.__SUPPORTED_TYPES:
             if typestr not in result:
                 result[typestr] = []   # Ensure all types are represented

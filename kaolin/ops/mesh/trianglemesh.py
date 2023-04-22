@@ -34,9 +34,7 @@ def _base_face_areas(face_vertices_0, face_vertices_1, face_vertices_2):
     a = (x2 * y3 - x3 * y2) ** 2
     b = (x3 * y1 - x1 * y3) ** 2
     c = (x1 * y2 - x2 * y1) ** 2
-    areas = torch.sqrt(a + b + c) * 0.5
-
-    return areas
+    return torch.sqrt(a + b + c) * 0.5
 
 
 def _base_sample_points_selected_faces(face_vertices, face_features=None):
@@ -464,9 +462,9 @@ def _get_adj_verts(edges_ex2, v):
 
     values = torch.ones(
         adj_sparse_idx.shape[0], device=edges_ex2.device).float()
-    adj_sparse = torch.sparse.FloatTensor(
-        adj_sparse_idx.t(), values, torch.Size([v, v]))
-    return adj_sparse
+    return torch.sparse.FloatTensor(
+        adj_sparse_idx.t(), values, torch.Size([v, v])
+    )
 
 
 def _get_alpha(n):
@@ -550,7 +548,7 @@ def subdivide_trianglemesh(vertices, faces, iterations, alpha=None):
             https://arxiv.org/abs/2111.04276
     """
     init_alpha = alpha
-    for i in range(iterations):
+    for _ in range(iterations):
         device = vertices.device
         b, v, f = vertices.shape[0], vertices.shape[1], faces.shape[0]
 

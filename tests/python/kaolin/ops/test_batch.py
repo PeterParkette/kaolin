@@ -117,10 +117,7 @@ class TestTileToPacked:
 
     @pytest.fixture(autouse=True)
     def high_val(self, dtype):
-        if dtype.is_floating_point:
-            return 1
-        else:
-            return 32
+        return 1 if dtype.is_floating_point else 32
 
     @pytest.fixture(autouse=True)
     def inputs(self, high_val, numel_per_tensor, dtype, device):
@@ -175,21 +172,20 @@ class TestBatching:
 
     @pytest.fixture(autouse=True)
     def numel_per_tensor(self, shape_per_tensor):
-        if shape_per_tensor.shape[1] == 1:
-            output = shape_per_tensor.squeeze(1)
-        else:
-            output = torch.prod(shape_per_tensor, dim=1)
-        return output
+        return (
+            shape_per_tensor.squeeze(1)
+            if shape_per_tensor.shape[1] == 1
+            else torch.prod(shape_per_tensor, dim=1)
+        )
 
     @pytest.fixture(autouse=True)
     def padding_value(self, dtype):
         if dtype == torch.bool:
-            val = False
+            return False
         elif dtype == torch.uint8:
-            val = 0
+            return 0
         else:
-            val = -1
-        return val
+            return -1
 
     @pytest.fixture(autouse=True)
     def first_idx(self, numel_per_tensor):

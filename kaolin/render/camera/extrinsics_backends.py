@@ -21,7 +21,7 @@ import warnings
 import torch
 
 
-_REGISTERED_BACKENDS = dict()       # available extrinsics representation backends
+_REGISTERED_BACKENDS = {}
 
 def register_backend(backend_class: Type[ExtrinsicsRep]):
     """Registers a representation backend class with a unique name.
@@ -57,14 +57,14 @@ class ExtrinsicsRep(ABC):
             self.params = self.params.to(dtype=dtype)
 
         # If the params tensor already has a gradient computation graph
-        if self.params.grad_fn is not None:
-            if not requires_grad:   # if the requires_grad arg is true, do nothing, we're set
-                # Otherwise, if explicitly requested not to have grads,
-                # then detach computation graph to create a separate tensor
-                self.params = self.params.detach()
-                self.params.requires_grad = requires_grad
-        else:
+        if self.params.grad_fn is None:
             # No computation graph was generated so requires_grad can be safely set
+            self.params.requires_grad = requires_grad
+
+        elif not requires_grad:   # if the requires_grad arg is true, do nothing, we're set
+            # Otherwise, if explicitly requested not to have grads,
+            # then detach computation graph to create a separate tensor
+            self.params = self.params.detach()
             self.params.requires_grad = requires_grad
 
     @classmethod
@@ -107,8 +107,12 @@ class ExtrinsicsRep(ABC):
         params = self.params[item]
         if params.ndim < self.params.ndim:
             params = params.unsqueeze(0)
-        entry = type(self)(params, dtype=self.dtype, device=self.device, requires_grad=self.requires_grad)
-        return entry
+        return type(self)(
+            params,
+            dtype=self.dtype,
+            device=self.device,
+            requires_grad=self.requires_grad,
+        )
 
     def to(self, *args, **kwargs):
         """ Cast to a different device / dtype """
@@ -227,8 +231,7 @@ class _Matrix6DofRotationRep(ExtrinsicsRep):
         rotation = torch.stack([b1, b2, b3], dim=1)  # Stack row-wise
         extrinsics_mat = torch.cat([rotation, translation.unsqueeze(-1)], dim=2)  # Stack column-wise
         homogeneous_row = translation.new_tensor([[0.0, 0.0, 0.0, 1.0]]).unsqueeze(0).expand(batch_size, 1, 4)
-        mat = torch.cat([extrinsics_mat, homogeneous_row], dim=1)
-        return mat
+        return torch.cat([extrinsics_mat, homogeneous_row], dim=1)
 
     @classmethod
     def convert_from_mat(cls, mat: torch.Tensor):
@@ -243,9 +246,10 @@ class _Matrix6DofRotationRep(ExtrinsicsRep):
         # Translation vector
         translation = mat[:, :3, -1:]
 
-        # Representation is 6DoF for rotation + 3DoF for translation: (r1, r2, r3, u1, u2, u3, tx, ty, tz)
-        params = torch.cat((rotation.reshape(batch_dim, -1), translation.reshape(batch_dim, -1)), dim=1)
-        return params
+        return torch.cat(
+            (rotation.reshape(batch_dim, -1), translation.reshape(batch_dim, -1)),
+            dim=1,
+        )
 
     @classmethod
     def param_idx(cls, param: ExtrinsicsParamsDefEnum):
@@ -255,7 +259,7 @@ class _Matrix6DofRotationRep(ExtrinsicsRep):
             the camera axes R component.
         """
         if param == ExtrinsicsParamsDefEnum.R:
-            return list(range(0, 6))
+            return list(range(6))
         elif param == ExtrinsicsParamsDefEnum.t:
             return list(range(6, 9))
 

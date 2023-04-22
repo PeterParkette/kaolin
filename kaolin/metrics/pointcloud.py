@@ -128,12 +128,11 @@ def chamfer_distance(p1, p2, w1=1., w2=1., squared=True):
     dist_to_p2 = sdist1.mean(dim=-1)
     dist_to_p1 = sdist2.mean(dim=-1)
 
-    if (w1 == 1 and w2 == 1):
-        distance = dist_to_p2 + dist_to_p1
-    else:
-        distance = w1 * dist_to_p2 + w2 * dist_to_p1
-
-    return distance
+    return (
+        dist_to_p2 + dist_to_p1
+        if (w1 == 1 and w2 == 1)
+        else w1 * dist_to_p2 + w2 * dist_to_p1
+    )
 
 def f_score(gt_points, pred_points, radius=0.01, eps=1e-8):
     r"""Computes the f-score of two sets of points, with a hit defined
@@ -180,8 +179,7 @@ def f_score(gt_points, pred_points, radius=0.01, eps=1e-8):
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
 
-    f_score = 2 * (precision * recall) / (precision + recall + eps)
-    return f_score
+    return 2 * (precision * recall) / (precision + recall + eps)
 
 def _sided_distance(p1, p2):
     """

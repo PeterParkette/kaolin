@@ -335,9 +335,9 @@ class TestSimpleDeftetSparseRender:
 class TestDeftetSparseRender:
     @pytest.fixture(autouse=True)
     def mesh(self):
-        mesh = kal.io.obj.import_mesh(os.path.join(MODEL_DIR, 'model.obj'),
-                                      with_materials=True)
-        return mesh
+        return kal.io.obj.import_mesh(
+            os.path.join(MODEL_DIR, 'model.obj'), with_materials=True
+        )
 
     @pytest.fixture(autouse=True)
     def faces(self, mesh):

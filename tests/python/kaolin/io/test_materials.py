@@ -45,8 +45,7 @@ def material_values():
         'specular_color': (1., 0., 0.),
         'is_specular_workflow': True,
     }
-    material = materials.PBRMaterial(**params)
-    yield material
+    yield materials.PBRMaterial(**params)
 
 
 @pytest.fixture(scope='module')
@@ -59,17 +58,20 @@ def material_textures():
         'specular_texture': torch.rand((3, 256, 256)),
         'is_specular_workflow': True,
     }
-    material = materials.PBRMaterial(**params)
-    yield material
+    yield materials.PBRMaterial(**params)
 
 
 @pytest.fixture(scope='module')
 def mesh():
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    obj_mesh = obj.import_mesh(os.path.join(cur_dir, os.pardir, os.pardir,
-                               os.pardir, 'samples/rocket.obj'), with_normals=True,
-                               with_materials=True, error_handler=obj.skip_error_handler)
-    return obj_mesh
+    return obj.import_mesh(
+        os.path.join(
+            cur_dir, os.pardir, os.pardir, os.pardir, 'samples/rocket.obj'
+        ),
+        with_normals=True,
+        with_materials=True,
+        error_handler=obj.skip_error_handler,
+    )
 
 
 class TestPBRMaterial:

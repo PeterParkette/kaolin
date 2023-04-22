@@ -126,7 +126,7 @@ class TestCachedDataset:
         for i in range(dataset_size):
             expected_data = dummy_dataset[i]
             fields = list(expected_data.keys())
-            expected_files = list(os.path.join(CACHE_DIR, str(i), f'{k}.pt') for k in fields)
+            expected_files = [os.path.join(CACHE_DIR, str(i), f'{k}.pt') for k in fields]
             all_expected_files.update(expected_files)
             if cache_at_runtime:
                 assert all(not os.path.exists(path) for path in expected_files)
@@ -154,9 +154,6 @@ class TestCachedDataset:
         if cache_at_runtime:
             for path, mtime in files_mtime.items():
                 assert os.path.getmtime(path) == mtime
-            for _ in ds2:
-                pass
-
         for path, mtime in files_mtime.items():
             if force_overwrite:
                 assert os.path.getmtime(path) != mtime
@@ -179,12 +176,17 @@ class TestCachedDataset:
                            num_workers=num_workers,
                            force_overwrite=force_overwrite,
                            cache_at_runtime=cache_at_runtime)
-        all_expected_files = set(os.path.join(CACHE_DIR, str(i), f'{k}.pt') for k in save_on_disk
-                                 for i in range(dataset_size))
+        all_expected_files = {
+            os.path.join(CACHE_DIR, str(i), f'{k}.pt')
+            for k in save_on_disk
+            for i in range(dataset_size)
+        }
         # Check output of dataset
         for i in range(dataset_size):
             expected_cache = dummy_dataset[i]
-            expected_files = list(os.path.join(CACHE_DIR, str(i), f'{k}.pt') for k in save_on_disk)
+            expected_files = [
+                os.path.join(CACHE_DIR, str(i), f'{k}.pt') for k in save_on_disk
+            ]
             if cache_at_runtime:
                 assert all(not os.path.exists(path) for path in expected_files)
             expected_output = transform(expected_cache) if use_transform else expected_cache
@@ -209,8 +211,6 @@ class TestCachedDataset:
         if cache_at_runtime:
             for path, mtime in files_mtime.items():
                 assert os.path.getmtime(path) == mtime
-            for _ in ds2:
-                pass
         for path, mtime in files_mtime.items():
             if force_overwrite:
                 assert os.path.getmtime(path) != mtime
@@ -232,10 +232,6 @@ class TestCachedDataset:
                            save_on_disk=save_on_disk,
                            num_workers=num_workers,
                            cache_at_runtime=cache_at_runtime)
-        if cache_at_runtime:
-            for _ in ds:
-                pass
-        
         expected_files = glob.glob(os.path.join(CACHE_DIR, '*', '*.pt'))
         files_mtime = {path: os.path.getmtime(path) for path in expected_files}
         time.sleep(0.01) # This is just in case I/O is so fast that files get greated in the same time
@@ -269,10 +265,7 @@ class TestCachedDataset:
                             force_overwrite=True,
                             cache_at_runtime=cache_at_runtime)
         if cache_at_runtime:
-            assert len(glob.glob(os.path.join(CACHE_DIR, '*'))) == 0
-            for _ in ds2:
-                pass
-        
+            assert not glob.glob(os.path.join(CACHE_DIR, '*'))
         # with 'force_overwrite' the cache files should be overwritten
         for path, mtime in files_mtime.items():
             assert os.path.getmtime(path) != mtime
@@ -285,7 +278,7 @@ class TestCachedDataset:
                                    num_workers, save_on_disk, cache_at_runtime):
         assert not os.path.exists(CACHE_DIR)
 
-        
+
 
         transform = DummyTransform(10, True) if use_transform else None
         ds = CachedDataset(dummy_dataset,
@@ -295,14 +288,11 @@ class TestCachedDataset:
                            num_workers=num_workers,
                            cache_at_runtime=cache_at_runtime)
 
-        if cache_at_runtime:
-            for _ in ds:
-                pass
         expected_files = glob.glob(os.path.join(CACHE_DIR, '*', '*.pt'))
         files_mtime = {path: os.path.getmtime(path) for path in expected_files}
         time.sleep(0.01) # This is just in case I/O is so fast that files get greated in the same time
         f"file '{os.path.join(CACHE_DIR, '0')}"
-        
+
         # using a POSIX path to avoid regex issues with Windows path backslashes.
         #   this is only a problem for the `pytest.raises` regex logic, not a problem with file saving.
         cache_check_str = (Path(CACHE_DIR) / "0").resolve().as_posix()
@@ -335,9 +325,6 @@ class TestCachedDataset:
         if cache_at_runtime:
             for path, mtime in files_mtime.items():
                 assert os.path.getmtime(path) == mtime
-            for _ in ds2:
-                pass
- 
         # with 'force_overwrite' the cache files should be overwritten
         for path, mtime in files_mtime.items():
             assert os.path.getmtime(path) != mtime
@@ -359,9 +346,6 @@ class TestCachedDataset:
                            num_workers=num_workers,
                            cache_at_runtime=cache_at_runtime)
 
-        if cache_at_runtime:
-            for _ in ds:
-                pass
         orig_files = glob.glob(os.path.join(CACHE_DIR, '*', '*.pt'))
         files_mtime = {path: os.path.getmtime(path) for path in orig_files}
         time.sleep(0.01) # This is just in case I/O is so fast that files get greated in the same time
@@ -372,10 +356,6 @@ class TestCachedDataset:
                                 num_workers=num_workers,
                                 force_overwrite=force_overwrite,
                                 cache_at_runtime=cache_at_runtime)
-
-        if cache_at_runtime:
-            for _ in diff_ds:
-                pass
 
         for path in glob.glob(os.path.join(CACHE_DIR, '*', 'a.pt')):
             # a.pt should only be overwritten if 'force_overwrite' is True
@@ -404,9 +384,6 @@ class TestCachedDataset:
                            num_workers=num_workers,
                            cache_at_runtime=cache_at_runtime)
 
-        if cache_at_runtime:
-            for _ in ds:
-                pass
         orig_files = glob.glob(os.path.join(CACHE_DIR, '*', '*.pt'))
         files_mtime = {path: os.path.getmtime(path) for path in orig_files}
         time.sleep(0.01) # This is just in case I/O is so fast that files get greated in the same time
@@ -433,10 +410,10 @@ class TestCachedDataset:
             except Exception as e:
                 pass
 
-        assert len(glob.glob(os.path.join(CACHE_DIR, '*', 'c.pt'))) == 0
+        assert not glob.glob(os.path.join(CACHE_DIR, '*', 'c.pt'))
 
         if force_overwrite:
-            assert len(glob.glob(os.path.join(CACHE_DIR, '*', 'a.pt'))) == 0
+            assert not glob.glob(os.path.join(CACHE_DIR, '*', 'a.pt'))
         else:
             assert len(glob.glob(os.path.join(CACHE_DIR, '*', 'a.pt'))) == dataset_size
 
@@ -459,10 +436,6 @@ class TestCachedDataset:
                                save_on_disk=True,
                                num_workers=num_workers,
                                cache_at_runtime=cache_at_runtime)
-
-            if cache_at_runtime:
-                for _ in ds:
-                    pass
 
         time.sleep(0.01) # This is just in case I/O is so fast that files get greated in the same time
         # to raise an error on purpose

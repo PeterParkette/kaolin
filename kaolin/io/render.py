@@ -74,10 +74,7 @@ def import_synthetic_view(root_dir, idx, rgb=True, depth_linear=False,
 
     def _import_npy(cat):
         path = os.path.join(root_dir, f'{idx}_{cat}.npy')
-        if os.path.exists(path):
-            output[cat] = torch.from_numpy(np.load(path))
-        else:
-            output[cat] = None
+        output[cat] = torch.from_numpy(np.load(path)) if os.path.exists(path) else None
 
     def _import_png(cat):
         path = os.path.join(root_dir, f'{idx}_{cat}.png')

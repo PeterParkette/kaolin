@@ -53,10 +53,16 @@ def voxelgrid(meshes):
 @pytest.fixture(scope='module')
 def pointcloud():
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    pointcloud = io.usd.import_pointcloud(os.path.join(cur_dir, os.pardir, os.pardir,
-                                          os.pardir, 'samples/rocket_pointcloud_GeomPoints.usda'),
-                                          '/World/pointcloud').points
-    return pointcloud
+    return io.usd.import_pointcloud(
+        os.path.join(
+            cur_dir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            'samples/rocket_pointcloud_GeomPoints.usda',
+        ),
+        '/World/pointcloud',
+    ).points
 
 @pytest.fixture(scope='module')
 def pointcloud_color():
@@ -69,11 +75,17 @@ def pointcloud_color():
 @pytest.fixture(scope='module')
 def meshes():
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    meshes = io.usd.import_meshes(os.path.join(cur_dir, os.pardir, os.pardir,
-                                  os.pardir, 'samples/rocket_hetero.usd'),
-                                  with_normals=True,
-                                  heterogeneous_mesh_handler=io.usd.heterogeneous_mesh_handler_naive_homogenize)
-    return meshes
+    return io.usd.import_meshes(
+        os.path.join(
+            cur_dir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            'samples/rocket_hetero.usd',
+        ),
+        with_normals=True,
+        heterogeneous_mesh_handler=io.usd.heterogeneous_mesh_handler_naive_homogenize,
+    )
 
 @pytest.fixture(scope='class')
 def material_values():
@@ -84,8 +96,7 @@ def material_values():
         'specular_color': (1., 0., 0.),
         'is_specular_workflow': True,
     }
-    material = io.materials.PBRMaterial(**params)
-    yield material
+    yield io.materials.PBRMaterial(**params)
 
 
 @pytest.fixture(scope='class')
@@ -97,8 +108,7 @@ def material_textures():
         'specular_texture': torch.rand((3, 256, 256)),
         'is_specular_workflow': True,
     }
-    material = io.materials.PBRMaterial(**params)
-    yield material
+    yield io.materials.PBRMaterial(**params)
 
 
 class TestTimelapse:
@@ -127,17 +137,14 @@ class TestTimelapse:
 
         # Check that data at each iteration is correct
         texture_dir = os.path.join(out_dir, 'test', 'textures')
-        assert os.path.exists(texture_dir) 
-        for iteration in data.keys():
+        assert os.path.exists(texture_dir)
+        for iteration in data:
             filename = os.path.join(out_dir, 'test', 'mesh_0.usd')
             mesh_in = io.usd.import_mesh(filename, time=iteration, with_normals=True)
             # Verify mesh properties
             assert torch.allclose(data[iteration]['vertices_list'][0], mesh_in.vertices)
             assert torch.equal(data[iteration]['faces_list'][0], mesh_in.faces)
-            if not data[iteration].get('face_uvs_idx_list'):
-                i = 0
-            else:
-                i = iteration
+            i = iteration if data[iteration].get('face_uvs_idx_list') else 0
             assert torch.allclose(data[i]['uvs_list'][0].view(-1, 2), mesh_in.uvs.view(-1, 2))
             # assert torch.equal(data[i]['face_uvs_idx_list'][0], mesh_in.face_uvs_idx)
             assert torch.allclose(data[i]['face_normals_list'][0], mesh_in.face_normals)

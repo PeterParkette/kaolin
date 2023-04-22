@@ -56,19 +56,19 @@ def heterogeneous_mesh_handler_naive_homogenize(vertices, face_vertex_counts, *f
         (list of torch.tensor): Homogeneous list of attributes.
     """
     def _homogenize(attr, face_vertex_counts):
-        if attr is not None:
-            attr = attr if isinstance(attr, list) else attr.tolist()
-            idx = 0
-            new_attr = []
-            for face_vertex_count in face_vertex_counts:
-                attr_face = attr[idx:(idx + face_vertex_count)]
-                idx += face_vertex_count
-                while len(attr_face) >= 3:
-                    new_attr.append(attr_face[:3])
-                    attr_face.pop(1)
-            return torch.tensor(new_attr)
-        else:
+        if attr is None:
             return None
+
+        attr = attr if isinstance(attr, list) else attr.tolist()
+        idx = 0
+        new_attr = []
+        for face_vertex_count in face_vertex_counts:
+            attr_face = attr[idx:(idx + face_vertex_count)]
+            idx += face_vertex_count
+            while len(attr_face) >= 3:
+                new_attr.append(attr_face[:3])
+                attr_face.pop(1)
+        return torch.tensor(new_attr)
 
     new_attrs = [_homogenize(a, face_vertex_counts) for a in features]
     new_counts = torch.ones(vertices.size(0), dtype=torch.long).fill_(3)

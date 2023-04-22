@@ -42,9 +42,8 @@ def _get_stage_from_maybe_file(file_path_or_stage):
     """
     if isinstance(file_path_or_stage, Usd.Stage):
         return file_path_or_stage
-    else:
-        assert os.path.exists(file_path_or_stage)
-        return Usd.Stage.Open(file_path_or_stage)
+    assert os.path.exists(file_path_or_stage)
+    return Usd.Stage.Open(file_path_or_stage)
 
 def get_scene_paths(file_path_or_stage, scene_path_regex=None, prim_types=None,
                     conditional=lambda x: True):

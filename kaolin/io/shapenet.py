@@ -93,9 +93,10 @@ def _convert_categories(categories):
         if c not in synset_to_labels.keys() and c not in label_to_synset.keys():
             warnings.warn('Some or all of the categories requested are not part of \
                 ShapeNetCore. Data loading may fail if these categories are not avaliable.')
-    synsets = [label_to_synset[c] if c in label_to_synset.keys()
-               else c for c in categories]
-    return synsets
+    return [
+        label_to_synset[c] if c in label_to_synset.keys() else c
+        for c in categories
+    ]
 
 class ShapeNetV1(Dataset):
     r"""ShapeNetV1 Dataset class for meshes.
@@ -216,7 +217,7 @@ class ShapeNetV1(Dataset):
             self.synsets = _convert_categories(categories)
             for s in self.synsets:
                 assert s in self.SUPPORTED_SYNSETS, \
-                    f"{s} is not supported in ShapeNetV1"
+                        f"{s} is not supported in ShapeNetV1"
         self.labels = [synset_to_labels[s] for s in self.synsets]
         self.with_materials = with_materials
         if not output_dict:
@@ -237,10 +238,7 @@ class ShapeNetV1(Dataset):
             # find all objects in the class
             models = sorted(class_target.glob('*'))
             stop = int(len(models) * split)
-            if train:
-                models = models[:stop]
-            else:
-                models = models[stop:]
+            models = models[:stop] if train else models[stop:]
             self.paths += models
             self.synset_idxs += [i] * len(models)
 
@@ -268,19 +266,20 @@ class ShapeNetV1(Dataset):
 
     def get_data(self, index):
         obj_location = self.paths[index] / 'model.obj'
-        mesh = import_mesh(str(obj_location), with_materials=self.with_materials,
-                           error_handler=ignore_error_handler)
-        return mesh
+        return import_mesh(
+            str(obj_location),
+            with_materials=self.with_materials,
+            error_handler=ignore_error_handler,
+        )
 
     def get_attributes(self, index):
         synset_idx = self.synset_idxs[index]
-        attributes = {
+        return {
             'name': self.names[index],
             'path': self.paths[index] / 'model.obj',
             'synset': self.synsets[synset_idx],
-            'labels': self.labels[synset_idx]
+            'labels': self.labels[synset_idx],
         }
-        return attributes
 
     def get_cache_key(self, index):
         return self.names[index]
@@ -404,7 +403,7 @@ class ShapeNetV2(Dataset):
             self.synsets = _convert_categories(categories)
             for s in self.synsets:
                 assert s in self.SUPPORTED_SYNSETS, \
-                    f"{s} is not supported in ShapeNetV2"
+                        f"{s} is not supported in ShapeNetV2"
         self.labels = [synset_to_labels[s] for s in self.synsets]
         self.with_materials = with_materials
         if not output_dict:
@@ -429,10 +428,7 @@ class ShapeNetV2(Dataset):
             else:
                 models = sorted(class_target.glob('*'))
             stop = int(len(models) * split)
-            if train:
-                models = models[:stop]
-            else:
-                models = models[stop:]
+            models = models[:stop] if train else models[stop:]
             self.paths += models
             self.synset_idxs += [i] * len(models)
 
@@ -460,19 +456,20 @@ class ShapeNetV2(Dataset):
 
     def get_data(self, index):
         obj_location = self.paths[index] / 'models/model_normalized.obj'
-        mesh = import_mesh(str(obj_location), with_materials=self.with_materials,
-                           error_handler=ignore_error_handler)
-        return mesh
+        return import_mesh(
+            str(obj_location),
+            with_materials=self.with_materials,
+            error_handler=ignore_error_handler,
+        )
 
     def get_attributes(self, index):
         synset_idx = self.synset_idxs[index]
-        attributes = {
+        return {
             'name': self.names[index],
             'path': self.paths[index] / 'models/model_normalized.obj',
             'synset': self.synsets[synset_idx],
-            'labels': self.labels[synset_idx]
+            'labels': self.labels[synset_idx],
         }
-        return attributes
 
     def get_cache_key(self, index):
         return self.names[index]

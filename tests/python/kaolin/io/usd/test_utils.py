@@ -35,10 +35,19 @@ def out_dir():
 @pytest.fixture(scope='module')
 def mesh():
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    obj_mesh = obj.import_mesh(
-        os.path.join(cur_dir, os.pardir, os.pardir, os.pardir, os.pardir, 'samples/rocket.obj'),
-        with_normals=True, with_materials=True, error_handler=obj.skip_error_handler)
-    return obj_mesh
+    return obj.import_mesh(
+        os.path.join(
+            cur_dir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            'samples/rocket.obj',
+        ),
+        with_normals=True,
+        with_materials=True,
+        error_handler=obj.skip_error_handler,
+    )
 
 @pytest.fixture(scope='module')
 def pointcloud():

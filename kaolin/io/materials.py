@@ -687,10 +687,7 @@ class PBRMaterial(Material):
                     return data['value'], True
             elif 'file' in data and data['file']:
                 fp = posixpath.join(texture_file_path, data['file'].get('value', Sdf.AssetPath()).path)
-                if 'colorspace' in data:
-                    colorspace = data['colorspace']['value']
-                else:
-                    colorspace = 'auto'
+                colorspace = data['colorspace']['value'] if 'colorspace' in data else 'auto'
                 try:
                     return cls._read_image(fp, colorspace=colorspace), False
                 except MaterialLoadError:

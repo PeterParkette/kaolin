@@ -287,11 +287,11 @@ def unbatched_query(octree, exsum, query_coords, level, with_parents=False):
         >>> kaolin.ops.spc.unbatched_query(octree, prefix, query_coords, 2, with_parents=True)
         tensor([[0, 2, 5]], device='cuda:0')
     """
-    if not query_coords.is_floating_point():
-        input_coords = (query_coords.float() / (2**level)) * 2.0 - 1.0
-    else:
-        input_coords = query_coords
-
+    input_coords = (
+        query_coords
+        if query_coords.is_floating_point()
+        else (query_coords.float() / (2**level)) * 2.0 - 1.0
+    )
     if with_parents:
         return _C.ops.spc.query_multiscale_cuda(octree.contiguous(), exsum.contiguous(),
                                                 input_coords.contiguous(), level).long()

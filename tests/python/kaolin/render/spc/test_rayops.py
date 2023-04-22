@@ -21,16 +21,15 @@ import kaolin.render.spc as spc_render
 class TestRaytrace:
     @pytest.fixture(autouse=True)
     def feats(self):
-        feats = torch.tensor([
-            [1,1],[1,1],[1,1],[2,2],[3,3],[5,5]
-            ],
-            device='cuda', dtype=torch.float)
-        return feats
+        return torch.tensor(
+            [[1, 1], [1, 1], [1, 1], [2, 2], [3, 3], [5, 5]],
+            device='cuda',
+            dtype=torch.float,
+        )
     
     @pytest.fixture(autouse=True)
     def feats_big(self):
-        feats = torch.rand([10000, 100, 32], device='cuda', dtype=torch.float)
-        return feats
+        return torch.rand([10000, 100, 32], device='cuda', dtype=torch.float)
 
     @pytest.fixture(autouse=True)
     def boundaries_big(self):
@@ -40,16 +39,13 @@ class TestRaytrace:
     
     @pytest.fixture(autouse=True)
     def tau(self):
-        feats = torch.tensor([
-            [0],[0],[0],[1],[0],[1]
-            ],
-            device='cuda', dtype=torch.float)
-        return feats
+        return torch.tensor(
+            [[0], [0], [0], [1], [0], [1]], device='cuda', dtype=torch.float
+        )
 
     @pytest.fixture(autouse=True)
     def boundaries(self):
-        boundary = torch.tensor([1,0,1,0,0,1], device='cuda', dtype=torch.bool)
-        return boundary
+        return torch.tensor([1,0,1,0,0,1], device='cuda', dtype=torch.bool)
 
     def test_mark_pack_boundaries(self):
         ridx = torch.tensor([1,1,1,1,2,2,3,3,3], device='cuda', dtype=torch.int)

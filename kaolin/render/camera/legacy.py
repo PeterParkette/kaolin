@@ -33,8 +33,7 @@ def rotate_translate_points(points, camera_rot, camera_trans):
         (torch.FloatTensor): 3D points in new rotation, of same shape than `points`.
     """
     translated_points = points - camera_trans.view(-1, 1, 3)
-    output_points = torch.matmul(translated_points, camera_rot.permute(0, 2, 1))
-    return output_points
+    return torch.matmul(translated_points, camera_rot.permute(0, 2, 1))
 
 
 def generate_rotate_translate_matrices(camera_position, look_at, camera_up_direction):
@@ -134,9 +133,7 @@ def perspective_camera(points, camera_proj):
     # TODO(cfujitsang): if we have to permute and reshape the camera matrix
     #                   does that mean that they are wrong in the first place ?
     projected_points = points * camera_proj.view(-1, 1, 3)
-    projected_2d_points = projected_points[:, :, :2] / projected_points[:, :, 2:3]
-
-    return projected_2d_points
+    return projected_points[:, :, :2] / projected_points[:, :, 2:3]
 
 
 def generate_perspective_projection(fovyangle,

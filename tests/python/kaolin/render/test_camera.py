@@ -48,10 +48,7 @@ class TestCamera:
 
     @pytest.fixture(autouse=True)
     def camera_fovy(self):
-        # 2.5 means tan(fov angle)
-        # tan(fov_y/2) = 2.5, fovy_y is around 45 deg
-        angle = np.arctan(1.0 / 2.5) * 2
-        return angle
+        return np.arctan(1.0 / 2.5) * 2
 
     def test_camera_rot(self, batch_size, device, width, height, camera_pos,
                         object_pos, camera_up):

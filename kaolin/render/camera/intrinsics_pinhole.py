@@ -282,8 +282,7 @@ class PinholeIntrinsics(CameraIntrinsics):
             torch.stack([zero,         zero,            zero,       one],        dim=-1),
             torch.stack([zero,         zero,            one,        zero],       dim=-1)
         ]
-        persp_mat = torch.stack(rows, dim=1)
-        return persp_mat
+        return torch.stack(rows, dim=1)
 
     def ndc_matrix(self, left, right, bottom, top, near, far) -> torch.Tensor:
         r"""Constructs a matrix which performs the required transformation to project the scene onto the view frustum.
@@ -479,9 +478,7 @@ class PinholeIntrinsics(CameraIntrinsics):
         left = -right
         ndc = self.ndc_matrix(left, right, bottom, top, self.near, self.far)
 
-        # Squash matrices together to form complete perspective projection matrix which maps to NDC coordinates
-        proj = ndc @ persp_matrix
-        return proj
+        return ndc @ persp_matrix
 
     def transform(self, vectors: torch.Tensor) -> torch.Tensor:
         r"""
@@ -517,9 +514,7 @@ class PinholeIntrinsics(CameraIntrinsics):
 
         transformed_v = proj @ v
         transformed_v = transformed_v.squeeze(-1)  # Reshape:  (C, B, 4)
-        normalized_v = down_from_homogeneous(transformed_v)
-
-        return normalized_v  # Return shape:  (C, B, 3)
+        return down_from_homogeneous(transformed_v)
 
     def normalize_depth(self, depth: torch.Tensor) -> torch.Tensor:
         r"""Normalizes depth values to the NDC space defined by the view frustum.

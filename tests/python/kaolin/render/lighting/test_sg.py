@@ -30,8 +30,13 @@ ROOT_DIR = os.path.join(
 
 def _naive_sg_inner_product(intensity, direction, sharpness,
                             other_intensity, other_direction, other_sharpness):
-    dm = math.sqrt(sum([(sharpness * direction[i] + other_sharpness * other_direction[i]) ** 2
-                        for i in range(3)]))
+    dm = math.sqrt(
+        sum(
+            (sharpness * direction[i] + other_sharpness * other_direction[i])
+            ** 2
+            for i in range(3)
+        )
+    )
     lm = sharpness + other_sharpness
     mul = math.exp(dm - lm)
     expo = [mul * intensity[i] * other_intensity[i] for i in range(3)]
@@ -234,7 +239,7 @@ class TestRenderLighting:
         vertices_max = vertices.max(dim=1, keepdim=True)[0]
         vertices_min = vertices.min(dim=1, keepdim=True)[0]
         vertices = ((vertices - vertices_min) / (vertices_max - vertices_min)) - 0.5
-        
+
         faces = obj.faces.cuda()
         num_faces = faces.shape[0]
         num_vertices = vertices.shape[1]
@@ -271,11 +276,8 @@ class TestRenderLighting:
         face_vertices_camera = kal.ops.mesh.index_vertices_by_faces(vertices_camera, faces)
         face_vertices_image = kal.ops.mesh.index_vertices_by_faces(vertices_ndc[..., :2], faces)
         face_vertices_z = face_vertices_camera[..., -1]
-        
-        # Compute the rays
-        rays_d = []
-        for cam in cams:
-            rays_d.append(_generate_pinhole_rays_dir(cam))
+
+        rays_d = [_generate_pinhole_rays_dir(cam) for cam in cams]
         # Rays must be toward the camera
         rays_d = -torch.stack(rays_d, dim=0)
         imsize = 256

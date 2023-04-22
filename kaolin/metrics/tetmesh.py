@@ -43,11 +43,12 @@ def tetrahedron_volume(tet_vertices):
     A, B, C, D = [split.squeeze(2) for split in
                   torch.split(tet_vertices, split_size_or_sections=1, dim=2)]
 
-    # compute the volume of each tetrahedron directly by using V = |(a - d) * ((b - d) x (c - d))| / 6
-    volumes = torch.div(
-        ((A - D) * torch.cross(input=(B - D), other=(C - D), dim=2)).sum(dim=2), 6)
-
-    return volumes
+    return torch.div(
+        ((A - D) * torch.cross(input=(B - D), other=(C - D), dim=2)).sum(
+            dim=2
+        ),
+        6,
+    )
 
 def equivolume(tet_vertices, tetrahedrons_mean=None, pow=4):
     r"""Compute the EquiVolume loss as devised by *Gao et al.* in `Learning Deformable Tetrahedral Meshes for 3D
@@ -101,12 +102,11 @@ def equivolume(tet_vertices, tetrahedrons_mean=None, pow=4):
         # finding the mean volume of all tetrahedrons in the tetrahedron grid
         tetrahedrons_mean = torch.mean(volumes, dim=-1)
     tetrahedrons_mean = tetrahedrons_mean.reshape(1, -1)
-    # compute EquiVolume loss
-    equivolume_loss = torch.mean(torch.pow(
-        torch.abs(volumes - tetrahedrons_mean), exponent=pow),
-        dim=-1, keepdim=True)
-
-    return equivolume_loss
+    return torch.mean(
+        torch.pow(torch.abs(volumes - tetrahedrons_mean), exponent=pow),
+        dim=-1,
+        keepdim=True,
+    )
 
 
 def amips(tet_vertices, inverse_offset_matrix):
@@ -188,8 +188,8 @@ def amips(tet_vertices, inverse_offset_matrix):
     EPS = 1e-10
     denominator = torch.pow(torch.pow(j_det, 2) + EPS, 1 / 3)
 
-    # compute amips energy for positive tetrahedrons whose determinant of their Jacobian is positive
-    amips_energy = torch.mean(torch.div(trace, denominator) * (j_det >= 0).float(),
-                              dim=1, keepdim=True)
-
-    return amips_energy
+    return torch.mean(
+        torch.div(trace, denominator) * (j_det >= 0).float(),
+        dim=1,
+        keepdim=True,
+    )

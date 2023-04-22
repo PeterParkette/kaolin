@@ -70,9 +70,10 @@ class TestPoints:
         assert torch.equal(morton_to_points(morton), points)
 
     def test_points_to_corners(self, points):
-        expected_corners = []
-        for offset in itertools.product([0, 1], repeat=3):
-            expected_corners.append(points + torch.tensor([offset], device='cuda', dtype=torch.int16))
+        expected_corners = [
+            points + torch.tensor([offset], device='cuda', dtype=torch.int16)
+            for offset in itertools.product([0, 1], repeat=3)
+        ]
         expected_corners = torch.stack(expected_corners, dim=-2)
         assert torch.equal(points_to_corners(points), expected_corners)
 

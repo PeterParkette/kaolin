@@ -39,7 +39,7 @@ _INTRINSICS_MODULES = [OrthographicIntrinsics, PinholeIntrinsics]
 CameraModuleType = Union[Type[CameraExtrinsics], Type[CameraIntrinsics]]
 """An alias for all camera modules, identified as subtypes of CameraExtrinsics or CameraIntrinsics"""
 
-_HANDLED_TORCH_FUNCTIONS = dict()
+_HANDLED_TORCH_FUNCTIONS = {}
 """Registered torch functions the Camera class implements"""
 
 
@@ -340,7 +340,7 @@ class Camera:
         extrinsic_key = extrinsic_key[0]
         extrinsic_ctor, extrinsic_args = Camera._extrinsics_constructors[extrinsic_key]
 
-        if len(intrinsic_key) == 0:
+        if not intrinsic_key:
             # Protect against empty match
             intrinsic_key = None
         elif len(intrinsic_key) == 1:
@@ -353,13 +353,16 @@ class Camera:
                 _, intrinsic_args = Camera._intrinsics_constructors[key]
                 candidate_call_args = set(extrinsic_args).union(set(intrinsic_args))
                 return call_args.issubset(candidate_call_args)
+
             intrinsic_key = list(filter(_is_callargs_subset_of_ctor, intrinsic_key))
 
             # Finally, check if all remaining matches are a subset of a single constructor.
             # If so, choose this constructor as it is the one most explicitly referred.
-            if len(intrinsic_key) > 0:
+            if intrinsic_key:
                 longest_match = max(intrinsic_key, key=lambda s: len(s))
-                is_all_matches_subset_of_longest = all([s.issubset(longest_match) for s in intrinsic_key])
+                is_all_matches_subset_of_longest = all(
+                    s.issubset(longest_match) for s in intrinsic_key
+                )
                 intrinsic_key = longest_match if is_all_matches_subset_of_longest else None
 
         if intrinsic_key is None:
@@ -367,7 +370,11 @@ class Camera:
         intrinsic_ctor, intrinsic_args = Camera._intrinsics_constructors[intrinsic_key]
 
         extrinsic_args = {k: v for k, v in kwargs.items() if k in call_args.intersection(extrinsic_args)}
-        tensors_devices = set([arg.device for arg in extrinsic_args.values() if isinstance(arg, torch.Tensor)])
+        tensors_devices = {
+            arg.device
+            for arg in extrinsic_args.values()
+            if isinstance(arg, torch.Tensor)
+        }
         if 'device' not in extrinsic_args and len(tensors_devices) > 1:
             raise ValueError(f'Camera construction with tensors args on different devices is not allowed '
                              f'without explicitly specifying the Camera "device". Please '
@@ -429,10 +436,14 @@ class Camera:
             >>> # intrinsics will now allow gradient flow only for the focal length
         """
         args = set(args)
-        str_args = set([a for a in args if isinstance(a, str)])
+        str_args = {a for a in args if isinstance(a, str)}
         all_extrinsic_params_str = [e.name for e in ExtrinsicsParamsDefEnum]
-        all_extrinsic_args = set([a for a in args if isinstance(a, ExtrinsicsParamsDefEnum)])
-        all_intrinsic_args = set([a for a in args if isinstance(a, IntrinsicsParamsDefEnum)])
+        all_extrinsic_args = {
+            a for a in args if isinstance(a, ExtrinsicsParamsDefEnum)
+        }
+        all_intrinsic_args = {
+            a for a in args if isinstance(a, IntrinsicsParamsDefEnum)
+        }
         extrinsic_args = str_args.intersection(all_extrinsic_params_str).union(all_extrinsic_args)
         intrinsic_args = str_args.difference(all_extrinsic_params_str).union(all_intrinsic_args)
         return self.extrinsics.gradient_mask(*extrinsic_args), self.intrinsics.gradient_mask(*intrinsic_args)
@@ -605,9 +616,12 @@ class Camera:
         return result
 
     def __eq__(self, other):
-        if not isinstance(other, Camera):
-            return False
-        return self.extrinsics == other.extrinsics and self.intrinsics == other.intrinsics
+        return (
+            self.extrinsics == other.extrinsics
+            and self.intrinsics == other.intrinsics
+            if isinstance(other, Camera)
+            else False
+        )
 
     def __getitem__(self, item):
         return Camera(extrinsics=self.extrinsics[item], intrinsics=self.intrinsics[item])

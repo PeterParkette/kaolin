@@ -27,23 +27,22 @@ if torch_spec is None:
         f"Kaolin requires PyTorch >={TORCH_MIN_VER}, <={TORCH_MAX_VER}, "
         "but couldn't find the module installed."
     )
-else:
-    import torch
-    torch_ver = parse_version(parse_version(torch.__version__).base_version)
-    if (torch_ver < parse_version(TORCH_MIN_VER) or
+import torch
+torch_ver = parse_version(parse_version(torch.__version__).base_version)
+if (torch_ver < parse_version(TORCH_MIN_VER) or
         torch_ver > parse_version(TORCH_MAX_VER)):
-        if IGNORE_TORCH_VER:
-            warnings.warn(
-                f'Kaolin is compatible with PyTorch >={TORCH_MIN_VER}, <={TORCH_MAX_VER}, '
-                f'but found version {torch.__version__}. Continuing with the installed '
-                'version as IGNORE_TORCH_VER is set.'
-            )
-        else:
-            raise ImportError(
-                f'Kaolin requires PyTorch >={TORCH_MIN_VER}, <={TORCH_MAX_VER}, '
-                f'but found version {torch.__version__} instead.'
-                'If you wish to install with this specific version set IGNORE_TORCH_VER=1.'
-            )
+    if IGNORE_TORCH_VER:
+        warnings.warn(
+            f'Kaolin is compatible with PyTorch >={TORCH_MIN_VER}, <={TORCH_MAX_VER}, '
+            f'but found version {torch.__version__}. Continuing with the installed '
+            'version as IGNORE_TORCH_VER is set.'
+        )
+    else:
+        raise ImportError(
+            f'Kaolin requires PyTorch >={TORCH_MIN_VER}, <={TORCH_MAX_VER}, '
+            f'but found version {torch.__version__} instead.'
+            'If you wish to install with this specific version set IGNORE_TORCH_VER=1.'
+        )
 
 missing_modules = []
 
@@ -67,8 +66,7 @@ numpy_spec = importlib.util.find_spec("numpy")
 
 if numpy_spec is None:
     warnings.warn(
-        f"Kaolin requires numpy, but couldn't find the module installed. "
-        "This setup is gonna try to install it..."
+        "Kaolin requires numpy, but couldn't find the module installed. This setup is gonna try to install it..."
     )
     missing_modules.append('numpy')
 
@@ -83,9 +81,7 @@ if cython_spec is None:
 
 numpy_spec = importlib.util.find_spec("numpy")
 if numpy_spec is None:
-    raise ImportError(
-        f"Kaolin requires numpy but couldn't find or install it."
-    )
+    raise ImportError("Kaolin requires numpy but couldn't find or install it.")
 
 import os
 import sys
@@ -102,7 +98,9 @@ logger = logging.getLogger()
 logging.basicConfig(format='%(levelname)s - %(message)s')
 
 def get_cuda_bare_metal_version(cuda_dir):
-    raw_output = subprocess.check_output([cuda_dir + "/bin/nvcc", "-V"], universal_newlines=True)
+    raw_output = subprocess.check_output(
+        [f"{cuda_dir}/bin/nvcc", "-V"], universal_newlines=True
+    )
     output = raw_output.split()
     release_idx = output.index("release") + 1
     release = output[release_idx].split(".")
@@ -170,16 +168,14 @@ with open(version_txt) as f:
 def write_version_file():
     version_path = os.path.join(cwd, 'kaolin', 'version.py')
     with open(version_path, 'w') as f:
-        f.write("__version__ = '{}'\n".format(version))
+        f.write(f"__version__ = '{version}'\n")
 
 
 write_version_file()
 
 
 def get_requirements():
-    requirements = []
-    requirements.append('Pillow>=8.0.0')
-    requirements.append('tqdm>=4.51.0')
+    requirements = ['Pillow>=8.0.0', 'tqdm>=4.51.0']
     if sys.version_info < (3, 8):
         requirements.append('scipy>=1.2.0,<=1.7.3')
     else:
@@ -192,8 +188,7 @@ def get_requirements():
     if INCLUDE_EXPERIMENTAL:
         requirements.append('flask==2.0.3')
     with open(os.path.join(cwd, 'tools', 'viz_requirements.txt'), 'r') as f:
-        for line in f.readlines():
-            requirements.append(line.strip())
+        requirements.extend(line.strip() for line in f)
     return requirements
 
 
@@ -215,26 +210,24 @@ def get_extensions():
         define_macros += [("WITH_CUDA", None), ("THRUST_IGNORE_CUB_VERSION_CHECK", None)]
         sources += glob.glob('kaolin/csrc/**/*.cu', recursive=True)
         extension = CUDAExtension
-        extra_compile_args.update({'nvcc': [
+        extra_compile_args['nvcc'] = [
             '-O3',
             '-DWITH_CUDA',
-            '-DTHRUST_IGNORE_CUB_VERSION_CHECK'
-        ]})
+            '-DTHRUST_IGNORE_CUB_VERSION_CHECK',
+        ]
         include_dirs = get_include_dirs()
     else:
         extension = CppExtension
         with_cuda = False
-    extensions = []
-    extensions.append(
+    extensions = [
         extension(
             name='kaolin._C',
             sources=sources,
             define_macros=define_macros,
             extra_compile_args=extra_compile_args,
-            include_dirs=include_dirs
+            include_dirs=include_dirs,
         )
-    )
-
+    ]
     # use cudart_static instead
     for extension in extensions:
         extension.libraries = ['cudart_static' if x == 'cudart' else x
@@ -276,10 +269,9 @@ def get_include_dirs():
         if "CUB_HOME" in os.environ:
             logging.warning(f'Including CUB_HOME ({os.environ["CUB_HOME"]}).')
             include_dirs.append(os.environ["CUB_HOME"])
-        else:
-            if int(bare_metal_major) < 11:
-                logging.warning(f'Including default CUB_HOME ({os.path.join(cwd, "third_party/cub")}).')
-                include_dirs.append(os.path.join(cwd, 'third_party/cub'))
+        elif int(bare_metal_major) < 11:
+            logging.warning(f'Including default CUB_HOME ({os.path.join(cwd, "third_party/cub")}).')
+            include_dirs.append(os.path.join(cwd, 'third_party/cub'))
 
     return include_dirs
 

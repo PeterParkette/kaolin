@@ -89,11 +89,7 @@ class BaseIpyVisualizer(object):
         assert len(camera) == 1, "only single camera supported for visualizer"
         self.camera = camera
         self.render = render
-        if fast_render is None:
-            self.fast_render = render
-        else:
-            self.fast_render = fast_render
-
+        self.fast_render = render if fast_render is None else fast_render
         self._max_fps = max_fps
 
         wait = 0 if max_fps is None else int(1000. / max_fps)
@@ -134,10 +130,7 @@ class BaseIpyVisualizer(object):
     @max_fps.setter
     def max_fps(self, new_val):
         self._max_fps = new_val
-        if new_val is None:
-            self.event.wait = 0
-        else:
-            self.event.wait = int(1000. / max_fps)
+        self.event.wait = 0 if new_val is None else int(1000. / max_fps)
 
 @torch.jit.script
 def make_quaternion_rotation(angle: float, vec: torch.Tensor):
@@ -187,13 +180,15 @@ def mulqv(q: torch.Tensor, v: torch.Tensor):
     Return:
         (torch.Tensor): A quaternion, of shape :math:`(\text{batch_size}, 4)`.
     """
-    output = torch.stack([
-        q[:, 3] * v[:, 0] + q[:, 1] * v[:, 2] - q[:, 2] * v[:, 1],
-        q[:, 3] * v[:, 1] + q[:, 2] * v[:, 0] - q[:, 0] * v[:, 2],
-        q[:, 3] * v[:, 2] + q[:, 0] * v[:, 1] - q[:, 1] * v[:, 0],
-        - q[:, 0] * v[:, 0] - q[:, 1] * v[:, 1] - q[:, 2] * v[:, 2],
-    ], dim=-1)
-    return output
+    return torch.stack(
+        [
+            q[:, 3] * v[:, 0] + q[:, 1] * v[:, 2] - q[:, 2] * v[:, 1],
+            q[:, 3] * v[:, 1] + q[:, 2] * v[:, 0] - q[:, 0] * v[:, 2],
+            q[:, 3] * v[:, 2] + q[:, 0] * v[:, 1] - q[:, 1] * v[:, 0],
+            -q[:, 0] * v[:, 0] - q[:, 1] * v[:, 1] - q[:, 2] * v[:, 2],
+        ],
+        dim=-1,
+    )
 
 @torch.jit.script
 def mulqq(l: torch.Tensor, r: torch.Tensor):
@@ -208,13 +203,27 @@ def mulqq(l: torch.Tensor, r: torch.Tensor):
     Returns:
         (torch.Tensor): A quaternion, of shape :math:`(\text{batch_size}, 4)`.
     """
-    output = torch.stack([
-        l[:, 0] * r[:, 3] + l[:, 3] * r[:, 0] + l[:, 1] * r[:, 2] - l[:, 2] * r[:, 1],
-        l[:, 1] * r[:, 3] + l[:, 3] * r[:, 1] + l[:, 2] * r[:, 0] - l[:, 0] * r[:, 2],
-        l[:, 2] * r[:, 3] + l[:, 3] * r[:, 2] + l[:, 0] * r[:, 1] - l[:, 1] * r[:, 0],
-        l[:, 3] * r[:, 3] - l[:, 0] * r[:, 0] - l[:, 1] * r[:, 1] - l[:, 2] * l[:, 2],
-    ], dim=-1)
-    return output
+    return torch.stack(
+        [
+            l[:, 0] * r[:, 3]
+            + l[:, 3] * r[:, 0]
+            + l[:, 1] * r[:, 2]
+            - l[:, 2] * r[:, 1],
+            l[:, 1] * r[:, 3]
+            + l[:, 3] * r[:, 1]
+            + l[:, 2] * r[:, 0]
+            - l[:, 0] * r[:, 2],
+            l[:, 2] * r[:, 3]
+            + l[:, 3] * r[:, 2]
+            + l[:, 0] * r[:, 1]
+            - l[:, 1] * r[:, 0],
+            l[:, 3] * r[:, 3]
+            - l[:, 0] * r[:, 0]
+            - l[:, 1] * r[:, 1]
+            - l[:, 2] * l[:, 2],
+        ],
+        dim=-1,
+    )
 
 @torch.jit.script
 def rotate_around_axis(point: torch.Tensor, angle: float, axis: torch.Tensor):

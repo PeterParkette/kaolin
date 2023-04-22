@@ -18,7 +18,11 @@ def main(args):
             sect = nvbSect[0]
             size = sect.Misc_VirtualSize
             aslr = pe.OPTIONAL_HEADER.IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE
-            writable = 0 != ( sect.Characteristics & pefile.SECTION_CHARACTERISTICS['IMAGE_SCN_MEM_WRITE'] )
+            writable = (
+                sect.Characteristics
+                & pefile.SECTION_CHARACTERISTICS['IMAGE_SCN_MEM_WRITE']
+                != 0
+            )
             print(f"Found NV FatBin! Size: {size/1024/1024:0.2f}MB  ASLR: {aslr}  Writable: {writable}")
             if (writable or aslr) and size > 0:
                 print("- Modifying DLL")
@@ -52,7 +56,7 @@ def main(args):
                     continue
 
     print("\n\nDone!")
-    if len(failures) > 0:
+    if failures:
         print("***WARNING**** These files needed modification but failed: ")
         for failure in failures:
             print( f" - {failure}")

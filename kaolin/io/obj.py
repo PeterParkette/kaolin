@@ -157,10 +157,10 @@ def import_mesh(path, with_materials=False, with_normals=False,
                 materials_order.append([materials_idx[material_name], len(face_uvs_idx)])
             elif with_materials and data[0] == 'mtllib':
                 mtl_path = os.path.join(os.path.dirname(path), data[1])
-                materials_dict.update(load_mtl(mtl_path, error_handler))
+                materials_dict |= load_mtl(mtl_path, error_handler)
 
     # building materials in right order
-    materials = [{} for i in materials_idx]
+    materials = [{} for _ in materials_idx]
     for material_name, idx in materials_idx.items():
         if material_name not in materials_dict:
             error_handler(
@@ -181,12 +181,11 @@ def import_mesh(path, with_materials=False, with_normals=False,
                                                 f'and cannot be imported from {path}.'
                                                 f'User can set heterogeneous_mesh_handler.'
                                                 f'See kaolin.io.utils for the available options')
-        else:
-            all_features = [faces, face_uvs_idx, face_normals]
-            # Flatten all features
-            all_features = [flatten_feature(f) for f in all_features]
+        all_features = [faces, face_uvs_idx, face_normals]
+        # Flatten all features
+        all_features = [flatten_feature(f) for f in all_features]
 
-            mesh = heterogeneous_mesh_handler(vertices, face_vertex_counts, *all_features)
+        mesh = heterogeneous_mesh_handler(vertices, face_vertex_counts, *all_features)
         if mesh is not None:
             vertices, face_vertex_counts, faces, face_uvs_idx, face_normals = mesh
 
@@ -251,7 +250,7 @@ def load_mtl(mtl_path, error_handler):
             f"Failed to load material at path '{mtl_path}':\n{e}"),
             mtl_path=mtl_path, mtl_data=mtl_data)
     else:
-        for line in f.readlines():
+        for line in f:
             data = line.split()
             if len(data) == 0:
                 continue

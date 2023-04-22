@@ -83,7 +83,7 @@ def start_dash3d():
 
 
 def run_cypress():
-    command = 'npx cypress run --config-file {}'.format(cypress_config_path())
+    command = f'npx cypress run --config-file {cypress_config_path()}'
     logger.info(f'Starting cypress by running {command}')
     os.chdir(KAOLIN_ROOT)
     ret = os.system(command)
@@ -93,9 +93,9 @@ def run_cypress():
 
 def run_end_to_end_integration_tests():
     print('END 2 END INTEGRATION TEST FOR DASH 3D-------------------------------')
-    print('Timelapse input: {}'.format(timelapse_path()))
-    print('Server: http://localhost:{}'.format(port))
-    print('Golden screenshot files: {}'.format(golden_screenshots_path()))
+    print(f'Timelapse input: {timelapse_path()}')
+    print(f'Server: http://localhost:{port}')
+    print(f'Golden screenshot files: {golden_screenshots_path()}')
     print('Visual comparison results: ')
 
 

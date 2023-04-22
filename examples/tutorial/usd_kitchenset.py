@@ -25,15 +25,11 @@ def import_kitchen_set(kitchen_set_usd):
     # not each separate part of an object, we'll find all the paths that are named :code:`Geom`:
     scene_paths = usd.get_scene_paths(kitchen_set_usd, r'.*/Geom$')
 
-    # The meshes in this dataset have a heterogeneous topology, meaning the number of vertices 
-    # for each polygon varies. To deal with those, we'll pass in a handler function that will 
-    # homogenize those meshes to homogenous triangle meshes.
-    usd_meshes = usd.import_meshes(
+    return usd.import_meshes(
         file_path=kitchen_set_usd,
         scene_paths=scene_paths,
-        heterogeneous_mesh_handler=usd.heterogeneous_mesh_handler_naive_homogenize
+        heterogeneous_mesh_handler=usd.heterogeneous_mesh_handler_naive_homogenize,
     )
-    return usd_meshes
 
 
 def save_kitchen_set_dataset(meshes, out_dir):

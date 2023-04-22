@@ -37,10 +37,19 @@ def out_dir():
 @pytest.fixture(scope='module')
 def mesh():
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    obj_mesh = obj.import_mesh(
-        os.path.join(cur_dir, os.pardir, os.pardir,  os.pardir, os.pardir, 'samples/rocket.obj'),
-        with_normals=True, with_materials=True, error_handler=obj.skip_error_handler)
-    return obj_mesh
+    return obj.import_mesh(
+        os.path.join(
+            cur_dir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            os.pardir,
+            'samples/rocket.obj',
+        ),
+        with_normals=True,
+        with_materials=True,
+        error_handler=obj.skip_error_handler,
+    )
 
 class TestVoxelGrid:
     def setup_method(self):
@@ -76,20 +85,14 @@ class TestVoxelGrid:
     @pytest.mark.parametrize('input_stage', [False, True])
     def test_import_single(self, out_dir, voxelgrid, input_stage):
         out_path = os.path.join(out_dir, 'voxelgrid.usda')
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         voxelgrid_in = usd.import_voxelgrid(path_or_stage, scene_path=self.scene_path)
         assert torch.equal(voxelgrid, voxelgrid_in)
 
     @pytest.mark.parametrize('input_stage', [False, True])
     def test_import_multiple(self, out_dir, voxelgrid, input_stage):
         out_path = os.path.join(out_dir, 'voxelgrids.usda')
-        if input_stage:
-            path_or_stage = Usd.Stage.Open(out_path)
-        else:
-            path_or_stage = out_path
+        path_or_stage = Usd.Stage.Open(out_path) if input_stage else out_path
         voxelgrid_in_list = usd.import_voxelgrids(path_or_stage)
 
         # Confirm imported voxelgrid matches original input

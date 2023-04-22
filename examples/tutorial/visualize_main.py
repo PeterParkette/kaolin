@@ -56,12 +56,12 @@ if __name__ == "__main__":
 
     if not os.path.isdir(args.output_dir):
         raise RuntimeError(
-            'Output directory does not exist: --output_dir={}'.format(
-                args.output_dir))
+            f'Output directory does not exist: --output_dir={args.output_dir}'
+        )
 
     # Read test 3D models & setup fake training ----------------------------------
     obj_files = args.test_objs.split(',')
-    logger.info('Parsing {} OBJ files: '.format(len(obj_files)))
+    logger.info(f'Parsing {len(obj_files)} OBJ files: ')
     face_list = []
     gt_vert_list = []
     input_pt_clouds = []
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         delta_pt_list.append(delta_pts)
 
     # Emulate visualizing during training -------------------------------------
-    logger.info('Emulating training run for {} iterations'.format(args.iterations))
+    logger.info(f'Emulating training run for {args.iterations} iterations')
 
     # Create a Timelapse instance
     timelapse = kaolin.visualize.Timelapse(args.output_dir)
@@ -130,10 +130,9 @@ if __name__ == "__main__":
                 category='output',
                 voxelgrid_list=out_voxels)
 
-    logger.info('Emulated training complete!\n'
-                'You can now view created USD files found here: {}\n\n'
-                'You will soon be able to visualize these in the Kaolin Omniverse App '
-                'and our web visualizer. Stay tuned!'.format(args.output_dir))
+    logger.info(
+        f'Emulated training complete!\nYou can now view created USD files found here: {args.output_dir}\n\nYou will soon be able to visualize these in the Kaolin Omniverse App and our web visualizer. Stay tuned!'
+    )
 
     # TODO(mshugrina): update command line once finalized
     # 'Now try visualizing the results by running:\n'

@@ -28,7 +28,7 @@ __all__ = [
     "down_from_homogeneous"
 ]
 
-_HANDLED_TORCH_FUNCTIONS = dict()
+_HANDLED_TORCH_FUNCTIONS = {}
 default_dtype = torch.get_default_dtype()
 
 
@@ -119,12 +119,12 @@ class CameraIntrinsics(ABC):
         # _shared_fields ensures that views created on this instance will mirror any changes back
         # These fields can be accessed as simple properties
         self._shared_fields = dict(
-            width=width,               # Screen resolution (x), int
-            height=height,             # Screen resolution (y), int
-            near=float(near),          # Near clipping plane, float
-            far=float(far),            # Far clipping plane, float
-            ndc_min=-1.0,              # Min value of NDC space
-            ndc_max=1.0                # Max value of NDC space
+            width=width,
+            height=height,
+            near=near,
+            far=far,
+            ndc_min=-1.0,
+            ndc_max=1.0,
         )
 
     def aspect_ratio(self) -> float:
@@ -232,7 +232,7 @@ class CameraIntrinsics(ABC):
                 each camera tracked by this class will be updated with the corresponding value.
             param_idx (IntrinsicsParamsDefEnum): index of the parameter to be set
         """
-        if isinstance(val, float) or isinstance(val, int):  # All cameras use same value
+        if isinstance(val, (float, int)):  # All cameras use same value
             self.params[:, param_idx] = torch.full_like(self.params[:, 0], val)  # TODO(operel): can just use: =val
         elif val.ndim == 0:         # All cameras use same value
             self.params[:, param_idx] = val.unsqueeze(0).repeat(len(self), 1)    # TODO(operel): can just use broadcast
@@ -260,10 +260,9 @@ class CameraIntrinsics(ABC):
         converted_params = self.params.to(*args, **kwargs)
         if self.params.dtype == converted_params.dtype and self.params.device == converted_params.device:
             return self
-        else:
-            new_instance = copy.deepcopy(self)
-            new_instance.params = converted_params
-            return new_instance
+        new_instance = copy.deepcopy(self)
+        new_instance.params = converted_params
+        return new_instance
 
     def gradient_mask(self, *args: Union[str, IntrinsicsParamsDefEnum]) -> torch.Tensor:
         """Creates a gradient mask, which allows to backpropagate only through params designated as trainable.

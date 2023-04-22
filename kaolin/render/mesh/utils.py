@@ -120,10 +120,7 @@ def spherical_harmonic_lighting(imnormal, lights):
                          band1_m1, band1_0, band1_p1,
                          band2_m2, band2_m1, band2_0, band2_p1, band2_p2],
                         dim=3)
-    lighting_effect = torch.sum(bands * lights.view(-1, 1, 1, 9),
-                                dim=3)
-
-    return lighting_effect
+    return torch.sum(bands * lights.view(-1, 1, 1, 9), dim=3)
 
 def prepare_vertices(vertices, faces, camera_proj, camera_rot=None, camera_trans=None,
                      camera_transform=None):

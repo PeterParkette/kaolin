@@ -165,16 +165,27 @@ def tile_to_packed(values, numel_per_tensor):
                 [7.],
                 [7.]])
     """
-    if torch.cuda.is_available() and values.is_cuda and not numel_per_tensor.is_cuda:
-        # TODO(cfujitsang): this could be externalized with lazy initialization
-        #                   currently kept inside as the slowdown is still reasonable
-        total_numel = torch.sum(numel_per_tensor)
-        tiled_packed_tensor = _TileToPackedCuda.apply(values, numel_per_tensor, total_numel)
-    else:
-        tiled_packed_tensor = torch.cat(
-            [torch.full((int(numel),), fill_value=value.item(), dtype=values.dtype, device=values.device)
-             for value, numel in zip(values, numel_per_tensor)], dim=0).unsqueeze(-1)
-    return tiled_packed_tensor
+    if (
+        not torch.cuda.is_available()
+        or not values.is_cuda
+        or numel_per_tensor.is_cuda
+    ):
+        return torch.cat(
+            [
+                torch.full(
+                    (int(numel),),
+                    fill_value=value.item(),
+                    dtype=values.dtype,
+                    device=values.device,
+                )
+                for value, numel in zip(values, numel_per_tensor)
+            ],
+            dim=0,
+        ).unsqueeze(-1)
+    # TODO(cfujitsang): this could be externalized with lazy initialization
+    #                   currently kept inside as the slowdown is still reasonable
+    total_numel = torch.sum(numel_per_tensor)
+    return _TileToPackedCuda.apply(values, numel_per_tensor, total_numel)
 
 def packed_to_list(packed_tensor, shape_per_tensor, first_idx):
     """Converts a single packed tensor into a sequence of torch.Tensor.

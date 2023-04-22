@@ -29,7 +29,7 @@ __all__ = [
     'register_backend'
 ]
 
-_HANDLED_TORCH_FUNCTIONS = dict()   # torch compatible functions are registered here
+_HANDLED_TORCH_FUNCTIONS = {}
 default_dtype = torch.get_default_dtype()
 default_device = 'cpu'
 
@@ -210,17 +210,14 @@ class CameraExtrinsics():
         # If a backend name is explicitly requested, use that one
         if backend_name is not None:
             assert backend_name in _REGISTERED_BACKENDS,\
-                f'CameraExtrinsics tried to use backend: {backend_name},' \
-                f'which is not registered. Available backends: {cls.available_backends()}'
+                    f'CameraExtrinsics tried to use backend: {backend_name},' \
+                    f'which is not registered. Available backends: {cls.available_backends()}'
+        elif requires_grad:
+            backend_name = CameraExtrinsics.DEFAULT_DIFFERENTIABLE_BACKEND
         else:
-            # If no backend was specified, then by default we choose one which is optimal for torch differentiable ops
-            if requires_grad:
-                backend_name = CameraExtrinsics.DEFAULT_DIFFERENTIABLE_BACKEND
-            else:
-                backend_name = CameraExtrinsics.DEFAULT_BACKEND
+            backend_name = CameraExtrinsics.DEFAULT_BACKEND
         backend_class = _REGISTERED_BACKENDS[backend_name]
-        backend = backend_class.from_mat(mat, dtype, device, requires_grad)
-        return backend
+        return backend_class.from_mat(mat, dtype, device, requires_grad)
 
     @classmethod
     def _from_world_in_cam_coords(cls, rotation: torch.Tensor, translation: torch.Tensor,
@@ -984,10 +981,9 @@ class CameraExtrinsics():
         converted_backend = self._backend.to(*args, **kwargs)
         if self._backend == converted_backend:
             return self
-        else:
-            extrinsics = CameraExtrinsics(converted_backend)
-            extrinsics._base_change_matrix = self._base_change_matrix.clone()
-            return extrinsics
+        extrinsics = CameraExtrinsics(converted_backend)
+        extrinsics._base_change_matrix = self._base_change_matrix.clone()
+        return extrinsics
 
     def cpu(self) -> CameraExtrinsics:
         return self.to('cpu')
@@ -1053,8 +1049,7 @@ class CameraExtrinsics():
               The conversion to matrix requires a single Gram-Schmidt step.
         """
         value_idx = list(_REGISTERED_BACKENDS.values()).index(type(self._backend))
-        backend_name = list(_REGISTERED_BACKENDS.keys())[value_idx]
-        return backend_name
+        return list(_REGISTERED_BACKENDS.keys())[value_idx]
 
     @property
     def _base_change_matrix(self):

@@ -27,7 +27,7 @@ TEST_TYPES = [('cuda', dtype) for dtype in [torch.half, torch.float, torch.doubl
 def _torch_packed_simple_sum(inputs, numel_per_tensor):
     outputs = []
     last_id = 0
-    for i, numel in enumerate(numel_per_tensor):
+    for numel in numel_per_tensor:
         first_id = last_id
         last_id += int(numel)
         outputs.append(torch.sum(inputs[first_id:last_id]))
@@ -119,10 +119,7 @@ class TestPackedSimpleSum:
 
     @pytest.fixture(autouse=True)
     def high_val(self, dtype):
-        if dtype.is_floating_point or dtype == torch.bool:
-            return 1
-        else:
-            return 32
+        return 1 if dtype.is_floating_point or dtype == torch.bool else 32
 
     @pytest.fixture(autouse=True)
     def inputs(self, high_val, total_numel, dtype, device):

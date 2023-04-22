@@ -108,10 +108,10 @@ class TestBase:
                                       dtype=torch.int32)
         for bs, length in enumerate(lengths):
             cur_num_childrens_per_node = \
-                num_childrens_per_node[octree_start_idx:octree_start_idx + length]
+                    num_childrens_per_node[octree_start_idx:octree_start_idx + length]
             num_childrens_per_level.append([1])
             levels_first_idx.append([0])
-            for i in range(max_level):
+            for _ in range(max_level):
                 cur_idx = levels_first_idx[-1][-1]
                 cur_num_childrens = num_childrens_per_level[-1][-1]
                 num_childrens_per_level[-1].append(int(torch.sum(
@@ -122,7 +122,7 @@ class TestBase:
             num_childrens_per_level[-1].append(0);
             # + bs + 1 because torch.cumsum is inclusive
             expected_exsum[octree_start_idx + bs + 1:octree_start_idx + bs + 1 + length] = \
-                torch.cumsum(cur_num_childrens_per_node, dim=0)
+                    torch.cumsum(cur_num_childrens_per_node, dim=0)
             octree_start_idx += length
         num_childrens_per_level = torch.tensor(num_childrens_per_level, dtype=torch.int32)
         levels_first_idx = torch.tensor(levels_first_idx, dtype=torch.int32)
@@ -184,8 +184,8 @@ class TestTrinkets:
         pyramid = pyramid[0]
         point_hierarchy_dual, pyramid_dual = unbatched_make_dual(point_hierarchy, pyramid)
         trinkets, parents = unbatched_make_trinkets(point_hierarchy, pyramid, point_hierarchy_dual, pyramid_dual)
-        
-        for i in range(0, max_level+1):
+
+        for i in range(max_level+1):
             _idx = pyramid_dual[1, i] + unbatched_get_level_points(trinkets, pyramid, i)
             pts = point_hierarchy_dual.index_select(0, _idx.view(-1)).view(-1, 8, 3)
             expected_pts = points_to_corners(unbatched_get_level_points(point_hierarchy, pyramid, i))

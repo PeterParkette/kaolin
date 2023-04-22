@@ -38,8 +38,8 @@ def meshes_to_binary(vertices_list, faces_list):
     nmeshes = len(vertices_list)
     if len(faces_list) != nmeshes:
         raise RuntimeError(
-            'Expected equal number of vertex and face lists, got: {}, {}'.format(
-                nmeshes, len(faces_list)))
+            f'Expected equal number of vertex and face lists, got: {nmeshes}, {len(faces_list)}'
+        )
 
     # TODO: if needed, specify consistent order in tobytes()
     texture_mode = 0  # TODO: use to extend support with backward compatibility
@@ -124,19 +124,21 @@ class StreamingGeometryHelper(object):
             (bool)
         """
         if current_time is not None and abs(snap_time - current_time) < 0.5:
-            logger.info('Snap time {} too close to current_time {}; no geometry parsed'.format(
-                snap_time, current_time))
+            logger.info(
+                f'Snap time {snap_time} too close to current_time {current_time}; no geometry parsed'
+            )
             return False
         return True
 
     @staticmethod
     def _pick_one_scene_path(fpath, scene_paths, type_str):
         if len(scene_paths) == 0:
-            logger.warning('USD {} has no data of type {}'.format(fpath, type_str))
+            logger.warning(f'USD {fpath} has no data of type {type_str}')
             return None
         if len(scene_paths) > 1:
-            logger.warning('USD {} has more than one scene path of type {},'
-                           'only one will be shown: {}'.format(fpath, type_str, scene_paths))
+            logger.warning(
+                f'USD {fpath} has more than one scene path of type {type_str},only one will be shown: {scene_paths}'
+            )
         return scene_paths[0]
 
     def parse_encode_pointcloud(self, category, id, target_time, current_time=None):
@@ -236,20 +238,20 @@ class GeometryWebSocketHandler(WebSocketHandler):
     @tornado.gen.coroutine
     def on_message(self, message):
         """ Handles new messages on the socket."""
-        logger.debug("Received message of type {}: {}".format(type(message), message))
+        logger.debug(f"Received message of type {type(message)}: {message}")
 
         try:
             msg = json.loads(message)
         except Exception as e:
-            logger.error('Failed to decode incoming message: {}'.format(e))
+            logger.error(f'Failed to decode incoming message: {e}')
             return
 
         if msg.get("type") == "geometry":
             requests = msg.get("data")
             if not requests:
-                logger.error('Message contained no data: {}'.format(msg))
+                logger.error(f'Message contained no data: {msg}')
 
-            logger.debug('Handling geometry request: {}'.format(msg))
+            logger.debug(f'Handling geometry request: {msg}')
 
             for req in requests:
                 byte_message = yield self.get_requested_geometry(req)
@@ -285,7 +287,7 @@ class GeometryWebSocketHandler(WebSocketHandler):
         required_attr = ["type", "category", "id", "time", "view_id"]
         for att in required_attr:
             if att not in req:
-                logger.error("Request missing key {}: {}".format(att, req))
+                logger.error(f"Request missing key {att}: {req}")
                 return None
 
         req_id = int(req["id"])
@@ -298,16 +300,16 @@ class GeometryWebSocketHandler(WebSocketHandler):
                 byte_geometry, snap_time = self.helper.parse_encode_mesh(
                     req["category"], req_id, req_time, current_time=req_current_time)
             except Exception as e:
-                logger.error('Failed to obtain mesh for request {}: {}'.format(req, e))
+                logger.error(f'Failed to obtain mesh for request {req}: {e}')
         elif req.get("type") == "pointcloud":
             type_id = 1
             try:
                 byte_geometry, snap_time = self.helper.parse_encode_pointcloud(
                     req["category"], req_id, req_time, current_time=req_current_time)
             except Exception as e:
-                logger.error('Failed to obtain pointcloud for request {}: {}'.format(req, e))
+                logger.error(f'Failed to obtain pointcloud for request {req}: {e}')
         else:
-            logger.error('Unsupported requested geometry type: {}'.format(req.get("type")))
+            logger.error(f'Unsupported requested geometry type: {req.get("type")}')
 
         if byte_geometry is None:
             return None

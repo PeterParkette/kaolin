@@ -36,9 +36,9 @@ MODEL_DIR = os.path.join(ROOT_DIR, os.pardir, os.pardir, os.pardir, os.pardir, '
 class TestRasterize:
     @pytest.fixture(autouse=True)
     def mesh(self):
-        mesh = kal.io.obj.import_mesh(os.path.join(MODEL_DIR, 'model.obj'),
-                                      with_materials=True)
-        return mesh
+        return kal.io.obj.import_mesh(
+            os.path.join(MODEL_DIR, 'model.obj'), with_materials=True
+        )
 
     @pytest.fixture(autouse=True)
     def faces(self, mesh, flip):
@@ -293,7 +293,7 @@ class TestRasterize:
             render_ranges, face_vertices_z, face_vertices_image,
             face_uvs, with_valid_faces, valid_faces):
         if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-            pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+            pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
         if face_vertices_image.dtype == torch.double:
             pytest.skip("nvdiffrast not compatible with double")
         kwargs = {}
@@ -330,7 +330,7 @@ class TestRasterize:
             face_uvs, with_valid_faces, valid_faces, dtype):
         """Test with list of tensors as features"""
         if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-            pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+            pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
         if face_vertices_image.dtype == torch.double:
             pytest.skip("nvdiffrast not compatible with double")
         kwargs = {}
@@ -374,7 +374,7 @@ class TestRasterize:
             render_ranges, face_vertices_z, face_vertices_image,
             face_uvs, with_valid_faces, valid_faces):
         if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-            pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+            pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
         if face_vertices_image.dtype == torch.double:
             pytest.skip("nvdiffrast not compatible with double")
         kwargs = {}
@@ -428,7 +428,7 @@ class TestRasterize:
             render_ranges, face_vertices_z, face_vertices_image,
             face_uvs, with_valid_faces, valid_faces):
         if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-            pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+            pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
         if face_vertices_image.dtype == torch.double:
             pytest.skip("nvdiffrast not compatible with double")
         kwargs = {}
@@ -490,7 +490,7 @@ class TestRasterize:
             self, batch_size, height, width, face_vertices_z,
             face_vertices_image, face_uvs, with_valid_faces, valid_faces):
         if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-            pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+            pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
         if face_vertices_image.dtype == torch.double:
             pytest.skip("nvdiffrast not compatible with double")
         kwargs = {}
@@ -519,7 +519,7 @@ class TestRasterize:
             face_vertices_image, face_uvs, with_valid_faces, valid_faces):
         """Test with list of tensors as features"""
         if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-            pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+            pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
         if face_vertices_image.dtype == torch.double:
             pytest.skip("nvdiffrast not compatible with double")
         kwargs = {}
@@ -549,7 +549,7 @@ class TestRasterize:
             self, batch_size, height, width, face_vertices_z,
             face_vertices_image, face_uvs, with_valid_faces, valid_faces):
         if os.getenv('KAOLIN_TEST_NVDIFFRAST', '0') == '0':
-            pytest.skip(f'test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
+            pytest.skip('test is ignored as KAOLIN_TEST_NVDIFFRAST is not set')
         if face_vertices_image.dtype == torch.double:
             pytest.skip("nvdiffrast not compatible with double")
         kwargs = {}

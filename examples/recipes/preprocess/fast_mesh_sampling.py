@@ -45,7 +45,7 @@ def preprocessing_transform(inputs):
     mesh = inputs['mesh']
     vertices = mesh.vertices.unsqueeze(0)
     faces = mesh.faces
-    
+
     # Some materials don't contain an RGB texture map, so we are considering the single value
     # to be a single pixel texture map (1, 3, 1, 1)
     # we apply a modulo 1 on the UVs because ShapeNet follows GL_REPEAT behavior (see: https://open.gl/textures)
@@ -56,14 +56,14 @@ def preprocessing_transform(inputs):
     materials = [m['map_Kd'].permute(2, 0, 1).unsqueeze(0).float() / 255. if 'map_Kd' in m else
                  m['Kd'].reshape(1, 3, 1, 1)
                  for m in mesh.materials]
-    
+
     nb_faces = faces.shape[0]
     num_consecutive_materials = \
         torch.cat([
             materials_order[1:, 1],
             torch.LongTensor([nb_faces])
         ], dim=0)- materials_order[:, 1]
-    
+
     face_material_idx = kal.ops.batch.tile_to_packed(
         materials_order[:, 0],
         num_consecutive_materials
@@ -75,17 +75,15 @@ def preprocessing_transform(inputs):
     )
     face_uvs[:, mask] = 0.
 
-    outputs = {
+    return {
         'vertices': vertices,
         'faces': faces,
         'face_areas': kal.ops.mesh.face_areas(vertices, faces),
         'face_uvs': face_uvs,
         'materials': materials,
         'face_material_idx': face_material_idx,
-        'name': inputs['name']
+        'name': inputs['name'],
     }
-
-    return outputs
 
 class SamplePointsTransform(object):
     def __init__(self, num_samples):
@@ -116,13 +114,12 @@ class SamplePointsTransform(object):
                 padding_mode='border')
             all_point_colors[mask] = point_color[0, :, 0, :].permute(1, 0)
 
-        outputs = {
+        return {
             'coords': coords,
             'face_idx': face_idx,
             'colors': all_point_colors,
-            'name': inputs['name']
+            'name': inputs['name'],
         }
-        return outputs
 
 # Make ShapeNet dataset with preprocessing transform
 ds = kal.io.shapenet.ShapeNetV2(root=args.shapenet_dir,

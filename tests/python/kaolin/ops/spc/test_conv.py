@@ -65,10 +65,7 @@ class TestConv3D:
 
     @pytest.fixture(autouse=True)
     def bias(self, with_bias, out_channels):
-        if with_bias:
-            return torch.rand(out_channels, device='cuda')
-        else:
-            return None
+        return torch.rand(out_channels, device='cuda') if with_bias else None
 
     @pytest.fixture(autouse=True)
     def octrees_lengths_features(self, feature_grids, sparsity_masks):

@@ -209,14 +209,13 @@ def add_pointcloud(stage, points, scene_path, colors=None, time=None, points_typ
 
     if stage.GetPrimAtPath(scene_path):
         points_prim = stage.GetPrimAtPath(scene_path)
+    elif points_type == 'point_instancer':
+        points_prim = stage.DefinePrim(scene_path, 'PointInstancer')
+    elif points_type == 'usd_geom_points':
+        points_prim = stage.DefinePrim(scene_path, 'Points')
     else:
-        if points_type == 'point_instancer':
-            points_prim = stage.DefinePrim(scene_path, 'PointInstancer')
-        elif points_type == 'usd_geom_points':
-            points_prim = stage.DefinePrim(scene_path, 'Points')
-        else:
-            raise ValueError('Expected points_type to be "usd_geom_points" or "point_instancer", '
-                             f'but got "{points_type}".')
+        raise ValueError('Expected points_type to be "usd_geom_points" or "point_instancer", '
+                         f'but got "{points_type}".')
 
     if points_type == 'point_instancer':
         geom_points = UsdGeom.PointInstancer(points_prim)
@@ -280,9 +279,14 @@ def export_pointcloud(file_path, pointcloud, scene_path='/World/PointClouds/poin
         >>> points = torch.rand(100, 3)
         >>> stage = export_pointcloud('./new_stage.usd', points)
     """
-    stage = export_pointclouds(file_path, [pointcloud], [scene_path], colors=[color], times=[time],
-                               points_type=points_type)
-    return stage
+    return export_pointclouds(
+        file_path,
+        [pointcloud],
+        [scene_path],
+        colors=[color],
+        times=[time],
+        points_type=points_type,
+    )
 
 def export_pointclouds(file_path, pointclouds, scene_paths=None, colors=None, times=None,
                        points_type='point_instancer'):

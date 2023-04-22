@@ -303,9 +303,7 @@ def average_edge_length(vertices, faces):
     el2 = torch.sqrt((torch.sum(e2**2, dim=2)))
     el3 = torch.sqrt((torch.sum(e3**2, dim=2)))
 
-    edge_length = (el1 + el2 + el3) / 3.
-
-    return edge_length
+    return (el1 + el2 + el3) / 3.
 
 def uniform_laplacian_smoothing(vertices, faces):
     r"""Calculates the uniform laplacian smoothing of meshes.
@@ -337,6 +335,4 @@ def uniform_laplacian_smoothing(vertices, faces):
     num_vertices = vertices.shape[1]
 
     laplacian_matrix = uniform_laplacian(num_vertices, faces).to(dtype)
-    smoothed_vertices = torch.matmul(laplacian_matrix, vertices) + vertices
-
-    return smoothed_vertices
+    return torch.matmul(laplacian_matrix, vertices) + vertices

@@ -52,10 +52,8 @@ def _unbatched_check_sign_cuda(verts, faces, points):
     v3 = torch.index_select(verts, 0, faces[:, 2]).view(-1, 3).contiguous()
 
     ints = _C.ops.mesh.unbatched_mesh_intersection_cuda(points, v1, v2, v3)
-    
-    contains = ints % 2 == 1.
 
-    return contains
+    return ints % 2 == 1.
 
 
 def check_sign(verts, faces, points, hash_resolution=512):
@@ -107,7 +105,7 @@ def check_sign(verts, faces, points, hash_resolution=512):
     assert faces.device == points.device
     device = points.device
 
-    if not faces.dtype == torch.int64:
+    if faces.dtype != torch.int64:
         raise TypeError(f"Expected faces entries to be torch.int64 "
                         f"but got {faces.dtype}.")
     if not isinstance(hash_resolution, int):
@@ -144,12 +142,11 @@ def check_sign(verts, faces, points, hash_resolution=512):
     verts = verts / maxlen.view(-1, 1, 1)
     points = points / maxlen.view(-1, 1, 1)
     results = []
-    if device.type == 'cuda':
-        for i_batch in range(verts.shape[0]):
+    for i_batch in range(verts.shape[0]):
+        if device.type == 'cuda':
             contains = _unbatched_check_sign_cuda(verts[i_batch], faces, points[i_batch])
             results.append(contains)
-    else:
-        for i_batch in range(verts.shape[0]):
+        else:
             intersector = _UnbatchedMeshIntersector(verts[i_batch], faces, hash_resolution)
             contains = intersector.query(points[i_batch].data.cpu().numpy())
             results.append(torch.tensor(contains).to(device))
@@ -188,8 +185,7 @@ class _UnbatchedMeshIntersector:
 
         # cull points outside of the axis aligned bounding box
         # this avoids running ray tests unless points are close
-        inside_aabb = np.all(
-            (0 <= points) & (points <= self.resolution), axis=1)
+        inside_aabb = np.all((points >= 0) & (points <= self.resolution), axis=1)
         if not inside_aabb.any():
             return contains
 
@@ -291,7 +287,11 @@ class _TriangleIntersector2d:
 
         sum_uv = u + v
         contains[mask] = (
-            (0 < u) & (u < abs_detA) & (0 < v) & (v < abs_detA)
-            & (0 < sum_uv) & (sum_uv < abs_detA)
+            (u > 0)
+            & (u < abs_detA)
+            & (v > 0)
+            & (v < abs_detA)
+            & (sum_uv > 0)
+            & (sum_uv < abs_detA)
         )
         return contains
